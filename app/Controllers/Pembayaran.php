@@ -24,7 +24,7 @@ class Pembayaran extends BaseController
         $this->detailPembayaranModel = new DetailPembayaranModel();
         $this->anggotaModel = new AnggotaModel();
         $this->kamarModel = new KamarModel();
-        $this->idAdmin = 1;
+        $this->idAdmin = decryptID(session("LoggedUserData")['id_admin']);
     }
 
     public function index()
@@ -42,101 +42,110 @@ class Pembayaran extends BaseController
         return $jatuh_tempo;
     }
 
-    function cekJatuhTempo($current_month, $tenggat_waktu, $row)
+    function cekJatuhTempo($current_month, $tenggat_waktu, $row, $jenis_sewa = null)
     {
         // $today = "2024-03-29";
         $tgl_hari_ini = date("Y-m-d");
         $tanggal_hari_ini = new DateTime($tgl_hari_ini);
         $jatuh_tempo = $this->hitungJatuhTempo($row->tgl_kost, $current_month);
-        $tanggal_pembayaran = $row->tanggal;
+        // $tanggal_pembayaran = $row->tanggal;
 
-        // mengecek apakah sudah melakukan pembayaran
-        // karena pembayaran bulan ini ada, maka kita mengecek pembayaran bulan depan
-        if ($tanggal_pembayaran != "" && $tanggal_pembayaran != null) {
-            $hari_jatuh_tempo = date("d", strtotime($jatuh_tempo));
-            // jika tenggat waktu kurang dari sama dengan 7 hari
-            if ($hari_jatuh_tempo <= $tenggat_waktu) {
-                // kita mencari jatuh tempo untuk bulan depan, dan ditambahkan 1 bulan berikutnya
-                $current_month = date("Y-m", strtotime("+1 month", strtotime($current_month)));
-                // menghitung jatuh tempo bulan depan
-                $jatuh_tempo_bulan_depan = $this->hitungJatuhTempo($jatuh_tempo, $current_month);
+        // pemilihan jenis sewa
+        if ($jenis_sewa == '3 bulan') {
+            $pengurangan = "-3 month";
+            $penambahan = "+3 month";
+        } else if ($jenis_sewa == '1 tahun') {
+            $pengurangan = "-1 year";
+            $penambahan = "+1 year";
+        } else {
+            $pengurangan = "-1 month";
+            $penambahan = "+1 month";
+        }
+
+        $text_bulan_lalu = "";
+        $text_bulan_ini = "";
+        $text_bulan_depan = "";
+
+        // TODO: Mengecek pembayaran bulan lalu (jika ada)
+        // kita mencari jatuh tempo untuk bulan lalu, dan dikurangi 1 bulan berikutnya
+        $bulan_lalu = date("Y-m", strtotime($pengurangan, strtotime($current_month)));
+        if ($bulan_lalu >= date("Y-m", strtotime($row->tgl_kost))) {
+            // cek pembayaran bulan lalu
+            $pBulanLalu = $this->pembayaranModel->where('id_anggota', $row->id_a)->where('DATE_FORMAT(jatuh_tempo, "%Y-%m")', $bulan_lalu)->first();
+            // menghitung jatuh tempo bulan depan
+            $jatuh_tempo_bulan_lalu = $this->hitungJatuhTempo($jatuh_tempo, $bulan_lalu);
+            if (!$pBulanLalu) {
+                // Konversi kedua tanggal ke objek DateTime
+                $tgl_jatuh_tempo_bulan_lalu = new DateTime($jatuh_tempo_bulan_lalu);
+                // Hitung selisih hari antara tanggal jatuh tempo dan tanggal saat ini
+                $selisih_bulan_lalu = $tgl_jatuh_tempo_bulan_lalu->diff($tanggal_hari_ini)->days;
+                if ($selisih_bulan_lalu == 0) {
+                    $text_bulan_lalu = "<li>Jatuh tempo bulan lalu " . date("d F Y", strtotime($jatuh_tempo_bulan_lalu)) . " <br> <span class='badge badge-danger'>Tagihan bulan kemarin, " . date("F Y", strtotime($jatuh_tempo_bulan_lalu)) . " harus bayar hari ini</span></li>";
+                } else {
+                    $text_bulan_lalu = "<li>Jatuh tempo bulan lalu " . date("d F Y", strtotime($jatuh_tempo_bulan_lalu)) . " <br> <span class='badge badge-danger'>Sudah " . $selisih_bulan_lalu . " hari belum bayar tagihan bulan " . date("F Y", strtotime($jatuh_tempo_bulan_lalu)) . " </span></li>";
+                }
+            } else {
+                $text_bulan_ini = "<li>Jatuh tempo bulan sebelumnya " . date("d F Y", strtotime($jatuh_tempo_bulan_lalu)) . " sudah <span class='badge badge-success'>lunas</span></li>";
+            }
+        }
+        // TODO: Mengecek pembayaran bulan depan (jika ada)
+        // kita mencari jatuh tempo untuk bulan depan, dan ditambahkan 1 bulan berikutnya
+        $bulan_depan = date("Y-m", strtotime($penambahan, strtotime($current_month)));
+        if ($bulan_depan >= date("Y-m", strtotime($row->tgl_kost))) {
+            // cek pembayaran bulan depan
+            $pBulandepan = $this->pembayaranModel->where('id_anggota', $row->id_a)->where('DATE_FORMAT(jatuh_tempo, "%Y-%m")', $bulan_depan)->first();
+            // menghitung jatuh tempo bulan depan
+            $jatuh_tempo_bulan_depan = $this->hitungJatuhTempo($jatuh_tempo, $bulan_depan);
+            if (!$pBulandepan) {
                 // Konversi kedua tanggal ke objek DateTime
                 $tgl_jatuh_tempo_bulan_depan = new DateTime($jatuh_tempo_bulan_depan);
                 // Hitung selisih hari antara tanggal jatuh tempo dan tanggal saat ini
-                $selisih_hari = $tgl_jatuh_tempo_bulan_depan->diff($tanggal_hari_ini)->days;
-
-                // jika bulan depan sudah lunas maka tidak ada keterangan tagihan lagi
-                $cekTagihanBulanDepan = $this->pembayaranModel
-                    ->where('id_anggota', $row->id_a)
-                    ->where("DATE_FORMAT(tbl_pembayaran.jatuh_tempo, '%Y-%m')", date("Y-m", strtotime($jatuh_tempo_bulan_depan)))
-                    ->first();
-                if ($cekTagihanBulanDepan) {
-                    $text_jatuh_tempo =  date("d F Y", strtotime($jatuh_tempo));
+                $selisih_bulan_depan = $tgl_jatuh_tempo_bulan_depan->diff($tanggal_hari_ini)->days;
+                if ($selisih_bulan_depan == 0) {
+                    $text_bulan_depan = "<li>Jatuh tempo bulan depan " . date("d F Y", strtotime($jatuh_tempo_bulan_depan)) . " <br> <span class='badge badge-danger'>Tagihan bulan kemarin, " . date("F Y", strtotime($jatuh_tempo_bulan_depan)) . " harus bayar hari ini</span></li>";
                 } else {
-                    // return $selisih_hari . " - " . $jatuh_tempo_bulan_depan;
-                    if ($tanggal_hari_ini <= $tgl_jatuh_tempo_bulan_depan) {
-                        if ($selisih_hari == 0) {
-                            $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-danger'>Bulan " . date("F Y", strtotime($jatuh_tempo_bulan_depan)) . " harus bayar</span>";
-                        } else {
-                            $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-danger'>" . $selisih_hari . " hari lagi bayar untuk bulan " . date("F Y", strtotime($jatuh_tempo_bulan_depan)) . " </span>";
-                        }
-                    } else {
-                        $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . "<br> <span class='badge badge-danger'>Tagihan bulan selanjutnya telat " . $selisih_hari . " hari</span>";
-                    }
+                    $text_bulan_depan = "<li>Jatuh tempo bulan depan " . date("d F Y", strtotime($jatuh_tempo_bulan_depan)) . " <br> <span class='badge badge-" . (($selisih_bulan_depan <= $tenggat_waktu) ? 'danger' : 'info') . "'>" . $selisih_bulan_depan . " hari lagi akan bayar tagihan bulan " . date("F Y", strtotime($jatuh_tempo_bulan_depan)) . " </span></li>";
                 }
             } else {
-                $text_jatuh_tempo =  date("d F Y", strtotime($jatuh_tempo));
+                $text_bulan_ini = "<li>Jatuh tempo bulan depan " . date("d F Y", strtotime($jatuh_tempo_bulan_depan)) . " sudah <span class='badge badge-success'>lunas</span></li>";;
             }
-            return $text_jatuh_tempo;
         }
-
-        // Konversi kedua tanggal ke objek DateTime
-        $tanggal_jatuh_tempo = new DateTime($jatuh_tempo);
-        $tanggal_hari_ini = new DateTime($tgl_hari_ini);
-        // Hitung selisih hari antara tanggal jatuh tempo dan tanggal saat ini
-        $selisih_hari = $tanggal_jatuh_tempo->diff($tanggal_hari_ini)->days;
-
-        // $hari_jatuh_tempo = date("d", strtotime($jatuh_tempo));
-        // if ($hari_jatuh_tempo <= $tenggat_waktu) {
-        //     // kita mencari jatuh tempo untuk bulan depan
-        //     $current_month = date("Y-m", strtotime("+1 month", strtotime($current_month)));
-        //     $jatuh_tempo_bulan_depan = $this->hitungJatuhTempo($jatuh_tempo, $current_month);
-        //     // Konversi kedua tanggal ke objek DateTime
-        //     $tgl_jatuh_tempo_bulan_depan = new DateTime($jatuh_tempo_bulan_depan);
-        //     // Hitung selisih hari antara tanggal jatuh tempo dan tanggal saat ini
-        //     $selisih_hari = $tgl_jatuh_tempo_bulan_depan->diff($tanggal_hari_ini)->days;
-
-        //     // jika bulan depan sudah lunas maka tidak ada keterangan tagihan lagi
-        //     $cekTagihanBulanDepan = $this->pembayaranModel->where('id_anggota', $row->id_a)
-        //         ->where("DATE_FORMAT(tbl_pembayaran.jatuh_tempo, '%Y-%m')", date("Y-m", strtotime($jatuh_tempo_bulan_depan)))->first();
-        //     if ($cekTagihanBulanDepan) {
-        //         $text_jatuh_tempo =  date("d F Y", strtotime($jatuh_tempo));
-        //     } else {
-        //         // return $selisih_hari . " - " . $jatuh_tempo_bulan_depan;
-        //         if ($tanggal_hari_ini <= $tgl_jatuh_tempo_bulan_depan) {
-        //             if ($selisih_hari == 0) {
-        //                 $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-danger'>Bulan " . date("F Y", strtotime($jatuh_tempo_bulan_depan)) . " harus bayar</span>";
-        //             } else {
-        //                 $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-danger'>" . $selisih_hari . " hari lagi bayar untuk bulan " . date("F Y", strtotime($jatuh_tempo_bulan_depan)) . " </span>";
-        //             }
-        //         } else {
-        //             $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . "<br> <span class='badge badge-danger'>Tagihan bulan depan telat " . $selisih_hari . " hari</span>";
-        //         }
-        //     }
-        // } else {
-        if ($tanggal_hari_ini <= $tanggal_jatuh_tempo) {
-            if ($selisih_hari > $tenggat_waktu) {
-                $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-info'>" . $selisih_hari . " hari lagi bayar</span>";
-            } else if ($selisih_hari <= $tenggat_waktu && $selisih_hari > 0) {
-                $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-danger'>" . $selisih_hari . " hari lagi bayar</span>";
-            } else if ($selisih_hari == 0) {
-                $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-danger'>Hari ini harus bayar</span>";
+        // TODO: Mengecek jatuh tempo BULAN INI (jika ada)
+        $bulan_ini = date("Y-m", strtotime($current_month));
+        // cek pembayaran bulan depan
+        $pBulanIni = $this->pembayaranModel->where('id_anggota', $row->id_a)->where('DATE_FORMAT(jatuh_tempo, "%Y-%m")', $bulan_ini)->first();
+        // menghitung jatuh tempo bulan ini
+        $jatuh_tempo_bulan_ini = $this->hitungJatuhTempo($jatuh_tempo, $bulan_ini);
+        if (!$pBulanIni) {
+            // Konversi kedua tanggal ke objek DateTime
+            $tgl_jatuh_tempo_bulan_ini = new DateTime($jatuh_tempo_bulan_ini);
+            // Hitung selisih hari antara tanggal jatuh tempo dan tanggal saat ini
+            $selisih_bulan_ini = $tgl_jatuh_tempo_bulan_ini->diff($tanggal_hari_ini)->days;
+            if ($tanggal_hari_ini <= $tgl_jatuh_tempo_bulan_ini) {
+                if ($selisih_bulan_ini == 0) {
+                    $text_bulan_ini = "<li>Jatuh tempo bulan ini " . date("d F Y", strtotime($jatuh_tempo_bulan_ini)) . " <br> <span class='badge badge-danger'>Tagihan bulan ini, harus dibayar hari ini</span></li>";
+                } else {
+                    $text_bulan_ini = "<li>Jatuh tempo bulan ini " . date("d F Y", strtotime($jatuh_tempo_bulan_ini)) . " <br> <span class='badge badge-" . (($selisih_bulan_ini <= $tenggat_waktu) ? 'danger' : 'info') . "'>" . $selisih_bulan_ini . " hari lagi akan bayar</span></li>";
+                }
+            } else {
+                $text_bulan_ini = "<li>Jatuh tempo bulan ini " . date("d F Y", strtotime($jatuh_tempo_bulan_ini)) . " <br><span class='badge badge-danger'>Telat bayar " . $selisih_bulan_ini . " hari</span></li>";
             }
         } else {
-            $text_jatuh_tempo = date("d F Y", strtotime($jatuh_tempo)) . " - <span class='badge badge-danger'>Telat bayar " . $selisih_hari . " hari</span>";
+            if ($pBulanIni['status'] == "lunas") {
+                $text_bulan_ini = "<li>Jatuh tempo bulan ini " . date("d F Y", strtotime($jatuh_tempo_bulan_ini)) . " sudah <span class='badge badge-success'>Lunas</span></li>";
+            } else if ($pBulanIni['status'] == "cicil") {
+                $text_bulan_ini = "<li>Jatuh tempo bulan ini " . date("d F Y", strtotime($jatuh_tempo_bulan_ini)) . " masih <span class='badge badge-warning'>Dicicil</span></li>";
+            } else {
+                $text_bulan_ini = "<li>Jatuh tempo bulan ini " . date("d F Y", strtotime($jatuh_tempo_bulan_ini)) . "  <span class='badge badge-danger'>Belum diproses</span></li>";
+            }
         }
-        // }
-        return $text_jatuh_tempo;
+
+        return
+            "
+                <p class='text-left'>
+                    <ul>" . $text_bulan_ini . $text_bulan_lalu . $text_bulan_depan . "</ul>
+                </p>
+            ";
     }
 
     public function pembayaran_datatable($bulan, $jenis_sewa)
@@ -168,7 +177,6 @@ class Pembayaran extends BaseController
                 ->where('jenis_sewa', $jenis_sewa)
                 ->where('DATE_FORMAT(tbl_anggota.tgl_kost, "%Y-%m") <=', date("Y-m", strtotime($bulan)));   // mencari yang lunas bulan ini
         }
-
         // filter anggota aktif
         $builder->where('tbl_anggota.active', 1)->orderBy('nama', 'asc');
 
@@ -190,7 +198,7 @@ class Pembayaran extends BaseController
                 return $row->nama;
             })
             ->add('tgl_kost', function ($row) {
-                return date("d F Y", strtotime($row->tgl_kost));
+                return "<p class='text-center'>" . date("d F Y", strtotime($row->tgl_kost)) . "</p>";
             })
             ->add('telp', function ($row) {
                 return "<a href='https://wa.me/" . $row->telp . "' target='_blank'><i class='fab fa-whatsapp'></i> " . $row->telp . "</a>";
@@ -201,7 +209,7 @@ class Pembayaran extends BaseController
                 } else {
                     $tgl_bayar = "-";
                 }
-                return $tgl_bayar;
+                return "<p class='text-center'>" . $tgl_bayar . '</p>';
             })
             ->add('jatuh_tempo', function ($row) use ($bulan, $jenis_sewa, $tiga_bulan, $setahun, $tenggat_waktu) {
                 $text_jatuh_tempo = "";
@@ -219,7 +227,7 @@ class Pembayaran extends BaseController
                     }
 
                     if ($current_month == $bulan_ini) {
-                        $text_jatuh_tempo = $this->cekJatuhTempo($current_month, $tenggat_waktu, $row);
+                        $text_jatuh_tempo = $this->cekJatuhTempo($current_month, $tenggat_waktu, $row, '3 bulan');
                     } else {
                         $text_jatuh_tempo = "<span class='badge badge-info'><i class='fa fa-info-circle mr-2'></i>Tidak ada tagihan di bulan " . date("F Y", strtotime($current_month)) . "</span>";
                     }
@@ -236,7 +244,7 @@ class Pembayaran extends BaseController
                         $current_month = date('Y-m', strtotime($current_month . $setahun));
                     }
                     if ($current_month == $bulan_ini) {
-                        $text_jatuh_tempo = $this->cekJatuhTempo($current_month, $tenggat_waktu, $row);
+                        $text_jatuh_tempo = $this->cekJatuhTempo($current_month, $tenggat_waktu, $row, '1 tahun');
                     } else {
                         $text_jatuh_tempo = "<span class='badge badge-info'><i class='fa fa-info-circle mr-2'></i>Tidak ada tagihan di bulan " . date("F Y", strtotime($current_month)) . "</span>";
                     }
@@ -244,7 +252,7 @@ class Pembayaran extends BaseController
                     $text_jatuh_tempo = $this->cekJatuhTempo($bulan, $tenggat_waktu, $row);
                 }
 
-                return "<p class='text-center'>" . $text_jatuh_tempo . "</p>";
+                return $text_jatuh_tempo;
             })
             ->add('status', function ($row) use ($bulan, $jenis_sewa, $tiga_bulan, $setahun) {
                 $show_status = false;
@@ -343,7 +351,7 @@ class Pembayaran extends BaseController
                     // $jatuh_tempo = date("Y-m-d", strtotime($arr_today[0] . "-" . $arr_today[1] . "-" . $arr_mulai[2]));
                     $jatuh_tempo = $this->hitungJatuhTempo($row->tgl_kost, $bulan);
 
-                    $aksi = "<a href='" . base_url('pembayaran/default/' . $jatuh_tempo . '/' . encryptID($row->id_a)) . "' class='btn btn-info btn-sm' title='detail'><i class='fa fa-edit'></i> Catat Pembayaran</a>";
+                    $aksi = "<a href='" . base_url('pembayaran/default/' . $jatuh_tempo . '/' . encryptID($row->id_a)) . "' class='btn btn-info btn-sm' title='detail'><i class='fa fa-edit'></i> Pembayaran</a>";
 
                     return "
                     <div class='text-center'>
@@ -385,7 +393,7 @@ class Pembayaran extends BaseController
             ->join('tbl_anggota', 'tbl_anggota.id=tbl_pembayaran.id_anggota')
             ->join('tbl_kamar', 'tbl_kamar.id=tbl_pembayaran.id_kamar') // mengambil id kamar dari pembayaran 
             ->join('tbl_admin', 'tbl_admin.id=tbl_pembayaran.id_admin')
-            ->where('tbl_anggota.active', 1)
+            // ->where('tbl_anggota.active', 1)  // matikan ini agar semua data ditampilkan bahkan yang belum aktif
             ->where('tbl_pembayaran.id_anggota', $id_anggota)
             ->where('DATE_FORMAT(tbl_pembayaran.jatuh_tempo, "%Y-%m")', date("Y-m", strtotime($jatuh_tempo)))->first();
 
@@ -399,7 +407,7 @@ class Pembayaran extends BaseController
                 'jatuh_tempo' => $jatuh_tempo,
                 'pembayaran' => $cek_pembayaran,
                 'detail_pembayaran' => $this->detailPembayaranModel
-                    ->select("tbl_detail_pembayaran.*,tbl_admin.username as admin")
+                    ->select("tbl_detail_pembayaran.*,tbl_admin.nama as admin")
                     ->join('tbl_admin', 'tbl_admin.id=tbl_detail_pembayaran.id_admin', 'left')
                     ->where('id_pembayaran', $cek_pembayaran['id'])->orderBy('tanggal', 'DESC')->findAll(),
                 'total_dibayar' => $total_dibayar,
@@ -457,6 +465,10 @@ class Pembayaran extends BaseController
             $data['status'] = 'proses';
             $data['id_admin'] = $this->idAdmin;
             $data['tanggal'] = $data['tanggal'] . " " . date("H:i:s");
+            $data['no_pembayaran'] = $this->pembayaranModel->getNoPembayaran($data['id_kamar']);
+            // echo json_encode($data);
+            // return;
+
             $this->pembayaranModel->insert($data);
             echo json_encode([
                 'success' => true,
@@ -517,6 +529,7 @@ class Pembayaran extends BaseController
                     'id_pembayaran' => $id_pembayaran,
                     'tanggal' => date("Y-m-d H:i:s"),
                     'id_admin' =>  $this->idAdmin,
+                    'id_anggota' =>  $cek_pembayaran['id_anggota'],
                     'bayar' => $bayar,
                 ]);
 
@@ -573,5 +586,23 @@ class Pembayaran extends BaseController
             'success' => true,
             'message' => "Transaksi Pembayaran berhasil dihapus"
         ]);
+    }
+
+    public function cetak_kuitansi($id)
+    {
+        try {
+            $cekPembayaran = $this->pembayaranModel
+                ->select('tbl_pembayaran.*,a.nama as admin,an.nama as nama')
+                ->join("tbl_admin as a", "a.id=tbl_pembayaran.id_admin")
+                ->join("tbl_anggota as an", "an.id=tbl_pembayaran.id_anggota")
+                ->find(decryptID($id));
+            return view('pembayaran/v_cetak_kuitansi_pembayaran', [
+                'title' => "Cetak Kuitansi " . $cekPembayaran['no_pembayaran'],
+                'pembayaran' => $cekPembayaran
+            ]);
+        } catch (\Throwable $th) {
+            // throw $th;
+            echo "Data pembayaran tidak ditemukan!";
+        }
     }
 }

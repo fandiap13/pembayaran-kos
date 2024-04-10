@@ -30,7 +30,7 @@ class Login extends BaseController
             ]);
 
             if (!$valid) {
-                return redirect()->to(base_url('login'));
+                return redirect()->to(base_url('login'))->withInput();
             }
 
             $data = trimAllPostInput($this->request->getPost());

@@ -63,8 +63,12 @@
                                     <div class="btn-group" role="group">
                                         <button type="button" onclick="edit('<?= encryptID($value['id']); ?>')" class="btn btn-sm btn-primary"><i class="fa fa-edit"></i> Edit</button>
                                         <?php
-                                        $cekForeign = $db->table('tbl_pembayaran')->where('id_admin', $value['id'])->get()->getRowArray();
-                                        if (!$cekForeign) :
+                                        $cekForeign = $db->table('tbl_pembayaran')
+                                            ->where('id_admin', $value['id'])->get()->getRowArray();
+                                        if (
+                                            !$cekForeign && ($value['id'] != decryptID(session("LoggedUserData")['id_admin'])
+                                            )
+                                        ) :
                                         ?>
                                             <button type="button" onclick="hapus('<?= encryptID($value['id']); ?>')" class="btn btn-sm btn-danger"><i class="fa fa-trash-alt"></i> Hapus</button>
                                         <?php endif; ?>

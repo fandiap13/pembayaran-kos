@@ -68,13 +68,13 @@
                         </div>
                         <div class="col-lg-2">
                             <div class="form-group">
-                                <button type="button" class="btn btn-block btn-success"><i class="fa fa-file-excel"></i> Export Excel</button>
+                                <a href="<?= base_url('anggota/export_excel'); ?>" type="button" class="btn btn-block btn-success"><i class="fa fa-file-excel"></i> Export Excel</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <table id="data-table" class="table table-sm table-bordered table-hover">
+                <table id="data-table" class="table table-sm table-bordered table-hover text-sm">
                     <thead>
                         <tr>
                             <th style="width: 10px;">No</th>
@@ -93,7 +93,7 @@
                     </tbody>
                 </table>
             </div>
-        </div><!-- /.card -->
+        </div>
     </div>
 </div>
 

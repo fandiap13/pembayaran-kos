@@ -25,7 +25,10 @@ class FilterUser implements FilterInterface
      */
     public function before(RequestInterface $request, $arguments = null)
     {
-        //
+        if (empty(session()->get('LoggedUserData'))) {
+            session()->setFlashData("msg", 'danger#Harus login terlebih dahulu');
+            return redirect()->to('login');
+        }
     }
 
     /**
@@ -42,6 +45,8 @@ class FilterUser implements FilterInterface
      */
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
-        //
+        if (!empty(session('LoggedUserData'))) {
+            return redirect()->to('dashboard');
+        }
     }
 }

@@ -41,7 +41,9 @@
 
             <div class="card-body">
                 <ul class="list-group">
+                    <li class="list-group-item"><strong>No.Pembayaran: </strong><?= $pembayaran['no_pembayaran']; ?></li>
                     <li class="list-group-item"><strong>Ditambahkan Oleh Admin: </strong><?= $pembayaran['admin']; ?></li>
+                    <li class="list-group-item"><strong>Keterangan: </strong><?= $pembayaran['keterangan']; ?></li>
                     <li class="list-group-item"><strong>Status Pembayaran: </strong>
                         <?php
                         if ($pembayaran['status'] == "lunas") { ?>
@@ -52,6 +54,10 @@
                             <span class="badge badge-danger"><?= ucfirst($pembayaran['status']); ?></span>
                         <?php } ?>
                     </li>
+                    <?php if ($pembayaran['status'] != 'proses') { ?>
+                        <li class="list-group-item"><button class="btn btn-block btn-success" onclick="cetakKuitansi('<?= encryptID($pembayaran['id']); ?>')"><i class="fa fa-print"></i> Cetak Kuitansi</button></li>
+                    <?php } ?>
+
                     <li class="list-group-item"><button class="btn btn-block btn-danger" onclick="hapusTransaksiPembayaran('<?= encryptID($pembayaran['id']); ?>')"><i class="fa fa-trash-alt"></i> Hapus Transaksi Pembayaran</button></li>
                 </ul>
             </div>
@@ -375,6 +381,15 @@
                 });
             }
         });
+    }
+
+    function cetakKuitansi(id) {
+        const tinggi = 700; // konversi dari cm ke piksel, dengan asumsi 1 cm = 29.7 piksel
+        const lebar = 500; // konversi dari cm ke piksel, dengan asumsi 1 cm = 21 piksel
+
+        const printURL = "<?= base_url('pembayaran/cetak_kuitansi/'); ?>" + id;
+        const windowCetak = window.open(printURL, "", `width=${lebar},height=${tinggi},toolbar=no,menubar=no,scrollbars=yes,resizable=yes,titlebar=no`);
+        windowCetak.focus();
     }
 </script>
 <?= $this->endSection("main"); ?>

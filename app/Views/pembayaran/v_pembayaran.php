@@ -85,6 +85,12 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="keterangan">Keterangan</label>
+                        <textarea name="keterangan" id="keterangan" rows="3" class="form-control" required></textarea>
+                        <div class="invalid-feedback error_keterangan">
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="total_sewa">Total Biaya Sewa (<?= ucfirst($anggota['jenis_sewa']); ?>)</label>
                         <input type="number" name="total_sewa" id="total_sewa" class="form-control" value="<?= $totalBayar; ?>" readonly>
                         <div class="invalid-feedback error_total_sewa">

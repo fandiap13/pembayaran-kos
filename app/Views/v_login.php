@@ -30,15 +30,28 @@
                 ?>
                     <div class="alert alert-<?= $alert[0]; ?> alert-dismissible">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                        <h5><i class="icon fas fa-ban"></i> Terdapat kesalahan !</h5>
+                        <?php if ($alert[0] == "danger") { ?>
+                            <h5><i class="icon fas fa-ban"></i> Terdapat kesalahan !</h5>
+                        <?php } else { ?>
+                            <h5><i class="icon fas fa-info-circle"></i>Pesan</h5>
+                        <?php } ?>
                         <strong><?= $alert[1]; ?></strong>
+                    </div>
+                <?php } ?>
+
+
+                <?php if (validation_errors()) { ?>
+                    <div class="alert alert-danger alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        <h5><i class="icon fas fa-ban"></i> Terdapat kesalahan !</h5>
+                        <strong><?= validation_list_errors(); ?></strong>
                     </div>
                 <?php } ?>
 
                 <form action="" method="post">
                     <?= csrf_field(); ?>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Username" name="username">
+                        <input type="text" class="form-control" placeholder="Username" name="username" value="<?= old('username'); ?>">
                         <div class="input-group-append">
                             <div class="input-group-text">
                                 <span class="fas fa-user"></span>

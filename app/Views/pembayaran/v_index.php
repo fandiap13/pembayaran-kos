@@ -39,17 +39,18 @@
             </div>
             <div class="card-body">
                 <div class="form-group">
-                    <label for="">Pencarian Pembayaran Kos</label>
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="form-group" id="searchMode">
+                                <label for="bulan">Pencarian Pembayaran Kos</label>
                                 <input type="month" class="form-control" id="bulan" name="bulan" value="<?= date("Y-m"); ?>">
                             </div>
                         </div>
                         <div class="col-lg-6">
                             <div class="form-group">
+                                <label for="status">Pencarian Status Pembayaran Kos</label>
                                 <select name="status" id="status" class="form-control">
-                                    <option value="">-- pilih status pembayaran--</option>
+                                    <option value="">Tampilkan Semua</option>
                                     <option value="lunas">Lunas</option>
                                     <option value="cicil">Dicicil</option>
                                     <option value="proses">Proses belum selesai</option>
@@ -60,7 +61,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="">Tipe Pembayaran</label>
+                    <label for="">Tipe Pembayaran Kos</label>
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="form-group">

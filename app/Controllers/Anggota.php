@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Models\AnggotaModel;
 use App\Models\KamarModel;
+use App\Models\PembayaranModel;
 use Hermawan\DataTables\DataTable;
 
 class Anggota extends BaseController
@@ -116,12 +117,12 @@ class Anggota extends BaseController
                 return "<p class='text-right'>Rp " . number_format($row->harga, 0, ",", ".") . "</p>";
             })
             ->add('action', function ($row) {
-                $aksi = " <button onclick='restoreData(\"" . encryptID($row->id) . "\")' class='btn btn-primary btn-sm' title='restore'>
+                $aksi = " <button onclick='restoreData(\"" . encryptID($row->id) . "\")' class='btn btn-primary btn-sm mb-2' title='restore'>
                 <i class='fas fa-sync-alt'></i> Restore data</button>";
                 // $pembayaranModel = new PembayaranModel();
                 // $cekForeign = $pembayaranModel->where("id_anggota", $row->id)->first();
                 // if (!$cekForeign) {
-                $aksi .= " <button type='button' onclick='hapusPermanen(\"" . encryptID($row->id) . "\")' class='btn btn-danger btn-sm' title='hapus permanen'><i class='fa fa-trash-alt'></i> Hapus Permanen</button>";
+                // $aksi .= "<button type='button' onclick='hapusPermanen(\"" . encryptID($row->id) . "\")' class='btn btn-danger btn-sm mb-2' title='hapus permanen'><i class='fa fa-trash-alt'></i> Hapus Permanen</button>";
                 // }
 
                 return "
@@ -438,9 +439,29 @@ class Anggota extends BaseController
     {
         $id = decryptID($id);
 
-        // jadikan statusnya 0
+        // cek transaksi kost terakhir
+        $pembayaranModel = new PembayaranModel();
+        $cekPembayaranTerakhir = $pembayaranModel->where('id_anggota', $id)->orderBy('jatuh_tempo', 'DESC')->first();
+        if ($cekPembayaranTerakhir) {
+            $tanggal_kost_terakhir = date("Y-m", strtotime($cekPembayaranTerakhir['jatuh_tempo']));
+            if (date("Y-m") == $tanggal_kost_terakhir) {
+                $tgl_baru = $cekPembayaranTerakhir['jatuh_tempo'];
+            } else {
+                $tgl_baru = date("Y-m-d");
+            }
+        } else {
+            // jika tidak ada cek tgl anggota mulai mendaftar
+            $cekAnggota = $this->anggotaModel->find($id);
+            $tanggal_kost = date("Y-m", strtotime($cekPembayaranTerakhir['tgl_kost']));
+            if (date("Y-m") == $tanggal_kost) {
+                $tgl_baru = $cekAnggota['tgl_kost'];
+            } else {
+                $tgl_baru = date("Y-m-d");
+            }
+        }
+
         $this->anggotaModel->update($id, [
-            'tgl_kost' => date("Y-m-d"),
+            'tgl_kost' => $tgl_baru,
             'active' => 1,
             'tanggal_tidak_aktif' => null,
         ]);
@@ -448,6 +469,14 @@ class Anggota extends BaseController
         echo json_encode([
             'success' => true,
             'message' => "Anggota berhasil diaktifkan"
+        ]);
+    }
+
+    public function export_excel()
+    {
+        $data = $this->anggotaModel->getAllAnggota()->get()->getResultArray();
+        return view('anggota/v_anggota_export_excel', [
+            'data' => $data,
         ]);
     }
 }

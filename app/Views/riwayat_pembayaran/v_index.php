@@ -32,9 +32,9 @@
             </div>
             <div class="card-body">
                 <div class="form-group">
-                    <label for="">Pencarian tahun</label>
+                    <label for="">Pencarian tahun & Status Anggota</label>
                     <div class="row">
-                        <div class="col-lg-8">
+                        <div class="col-lg-4">
                             <div class="form-group" id="searchMode">
                                 <select name="tahun" id="tahun" class="form-control">
                                     <?php
@@ -45,6 +45,13 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-lg-4">
+                            <select name="status" id="status" class="form-control">
+                                <option value="all">Tampilkan Semua Anggota</option>
+                                <option value="1">Anggota Aktif</option>
+                                <option value="0">Anggota Tidak Aktif</option>
+                            </select>
+                        </div>
                         <div class="col-lg-2">
                             <div class="form-group">
                                 <button type="submit" id="tampil-pencarian" class="btn btn-block btn-primary"><i class="fa fa-list"></i> Tampilkan</button>
@@ -52,7 +59,7 @@
                         </div>
                         <div class="col-lg-2">
                             <div class="form-group">
-                                <button type="button" class="btn btn-block btn-success"><i class="fa fa-file-excel"></i> Export Excel</button>
+                                <button type="button" class="btn btn-block btn-success" onclick="exportRiwayatPembayaran();"><i class="fa fa-file-excel"></i> Export Excel</button>
                             </div>
 
                         </div>
@@ -95,6 +102,12 @@
                     <tbody>
 
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="14" style="text-align:center">Total Keseluruhan (Rp):</th>
+                            <td></td>
+                        </tr>
+                    </tfoot>
                 </table>
                 <!-- </div> -->
             </div>
@@ -105,15 +118,19 @@
 <script>
     var table;
     $(document).ready(function() {
-        console.log($('#tahun').val());
+        // console.log($('#tahun').val());
         table = $('#data-table').DataTable({
-            "responsive": true,
+            "responsive": false,
             "lengthChange": true,
             "autoWidth": false,
+            "pageLength": 50,
             processing: true,
             serverSide: true,
             ajax: {
                 url: '<?= base_url('riwayat_pembayaran/riwayat_pembayaran_datatable/'); ?>' + $('#tahun').val(),
+                data: function(e) {
+                    e.status = $('#status').val();
+                }
             },
             order: [],
             columns: [{
@@ -175,6 +192,13 @@
                     data: 'total_bayar',
                 },
             ],
+            "footerCallback": function(row, data, start, end, display) {
+                var api = this.api();
+                let totalBayar = data.reduce((acc, curr) => acc + parseInt(curr.total), 0);
+                let formattedTotalBayar = "Rp " + totalBayar.toLocaleString("id-ID");
+
+                $(api.column(14).footer()).html(formattedTotalBayar);
+            }
         });
     });
 
@@ -195,9 +219,14 @@
         reloadData();
     });
 
-    // $("#tahun").change(function(e) {
-    //     e.preventDefault();
-    //     reloadData();
-    // });
+    function exportRiwayatPembayaran() {
+        const tahun = $("#tahun").val();;
+        const status = $("#status").val();
+
+        let printURL = "<?= base_url("riwayat_pembayaran/export") ?>";
+        printURL += "?tahun=" + tahun + "&status=" + status;
+
+        window.location.href = printURL;
+    }
 </script>
 <?= $this->endSection("main"); ?>

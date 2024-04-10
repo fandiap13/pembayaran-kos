@@ -3,16 +3,13 @@
 $url = current_url(true);
 $currentUrl = strtolower($url->getSegment(1));
 
-$currUser;
+$db = db_connect();
+$currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserData")['id_admin']))->get()->getRowArray();
 
 ?>
 
 
 <!DOCTYPE html>
-<!--
-This is a starter template page. Use this page to start your new project from
-scratch. This page gets rid of all links and provides the needed markup only.
--->
 <html lang="en">
 
 <head>
@@ -60,7 +57,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <!-- Main Sidebar Container -->
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Brand Logo -->
-            <a href="<?= base_url(); ?>template/index3.html" class="brand-link">
+            <a href="" class="brand-link">
                 <span class="brand-text font-weight-light">REKAP KOST HOME GREEN</span>
             </a>
 
@@ -69,10 +66,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 <!-- Sidebar user panel (optional) -->
                 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                     <div class="image">
-                        <img src="<?= base_url(); ?>template/dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+                        <i class="fa fa-user-circle fa-2x mr-2 text-white"></i>
                     </div>
                     <div class="info">
-                        <a href="" class="d-block">FANDI AZIZ</a>
+                        <a href="" class="d-block"><?= $currUser['nama']; ?></a>
                     </div>
                 </div>
 
@@ -164,6 +161,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                 </p>
                             </a>
                         </li>
+                        <!-- <li class="nav-item">
+                            <a href="<?= base_url('pengaturan'); ?>" class="nav-link  <?= $currentUrl == "pengaturan" ? 'active' : ""; ?>">
+                                <i class="nav-icon fas fa-cog"></i>
+                                <p>
+                                    Pengaturan
+                                </p>
+                            </a>
+                        </li> -->
                         <li class="nav-item">
                             <a href="#" class="nav-link logout">
                                 <i class="nav-icon fas fa-sign-out-alt"></i>
@@ -214,7 +219,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         <footer class="main-footer">
             <!-- To the right -->
             <div class="float-right d-none d-sm-inline">
-                <a href="https://fandiap13.github.io/portofolio_new">
+                <a href="https://fandiap13.github.io/portofolio_new" target="_blank">
                     Developer
                 </a>
             </div>

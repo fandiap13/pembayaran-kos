@@ -77,7 +77,7 @@ class RiwayatPembayaran extends BaseController
 
             // jika tanggal mulai lebih besar dari bulan saat ini berarti belum mulai kost
             if ($tanggal_mulai > $bulan_saat_ini) {
-                return "<p class='text-center'>Belum kos</p>";
+                return "<p class='text-center'><span class='badge badge-info'>Tidak kos</span></p>";
             }
 
             if ($bulan_saat_ini != $current_month) {
@@ -89,10 +89,14 @@ class RiwayatPembayaran extends BaseController
             // if ($bulan == $jatuh_tempo) {
             if ($row->active == 1) {
                 return
-                    "<p class='text-center'><a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($cekAnggota['tgl_kost'], $jatuh_tempo) . "/" . encryptID($cekAnggota['id'])) . "'class='btn btn-sm btn-danger'><i class='fa fa-edit'></i> <br> Belum <br> bayar</a></p>";
+                    "<p class='text-center' style='font-size:12px'><a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($cekAnggota['tgl_kost'], $jatuh_tempo) . "/" . encryptID($cekAnggota['id'])) . "'class='btn btn-sm btn-danger'><i class='fa fa-edit'></i> <br> Belum <br> bayar</a>
+                    <br>
+                    <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "
+                    </p>";
             } else {
+                // artinya tidak aktif
                 return
-                    "<p class='text-center'><span class='badge badge-danger'>Belum bayar</span></p>";
+                    "<p class='text-center'><span class='badge badge-danger'>Pengguna Tidak aktif</span></p>";
             }
             // }
         } else { // jika ada maka cek apakah sudah bayar, atau belum lunas
@@ -102,21 +106,29 @@ class RiwayatPembayaran extends BaseController
             if ($cekTransaksiTahun['status'] == 'lunas') {
                 return "
                         <div style='font-size:12px;'>
-                            <p><strong>No.Kamar:</strong><br> " . $cekTransaksiTahun['kamar'] . "</p>
-                            <p><strong>Status Pembayaran:</strong><br> Lunas</p>
-                            <p><strong>Total Bayar:</strong> " . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "</p>
-                            <p><strong>Jenis Sewa:</strong> " . ucfirst($cekTransaksiTahun['tipe_pembayaran']) . "</p>
-                            <p><a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($tanggal_masuk, $jatuh_tempo) . "/" . encryptID($row->id_anggota)) . "'>Lihat Detail >></a></p>
+                            <p><strong>No.Kamar:</strong><br> " . $cekTransaksiTahun['kamar'] . "<br>
+                            <strong>Jatuh Tempo:</strong><br> " . date('d-m-Y', strtotime($cekTransaksiTahun['jatuh_tempo'])) . "<br>
+                            <strong>Status:</strong><br> <span class='badge badge-success'>Lunas</span><br>
+                            <strong>Total Bayar:</strong> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "<br>
+                            <strong>Jenis Sewa:</strong> " . ucfirst($cekTransaksiTahun['tipe_pembayaran']) . "<br><br>
+                            <a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($tanggal_masuk, $jatuh_tempo) . "/" . encryptID($row->id_anggota)) . "'>Lihat Detail >></a></p>
                         </div>
                         ";
                 // jika belum lunas
             } else {
                 if ($row->active == 1) {
                     return "
-                            <p class='text-center'><a href='" . base_url("pembayaran/default/" . $cekTransaksiTahun['jatuh_tempo'] . "/" . encryptID($cekTransaksiTahun['id_anggota'])) . "' class='btn btn-sm btn-warning'><i class='fa fa-edit'></i><br> Belum <br>lunas</a></p>
+                            <p class='text-center' style='font-size:12px;'><a href='" . base_url("pembayaran/default/" . $cekTransaksiTahun['jatuh_tempo'] . "/" . encryptID($cekTransaksiTahun['id_anggota'])) . "' class='btn btn-sm btn-warning'><i class='fa fa-edit'></i><br> Belum <br>lunas</a><br>
+                            <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "
+                            </p>
                         ";
                 } else {
-                    return "<p class='text-center'><span class='badge badge-warning'>Belum lunas</span></p>";
+                    return "<p class='text-center' style='font-size:12px;'><span class='badge badge-warning'>Belum lunas</span><br>
+                    <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "
+                    <br>
+                    <br>
+                    <a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($tanggal_masuk, $jatuh_tempo) . "/" . encryptID($row->id_anggota)) . "'>Lihat Detail >></a>
+                    </p>";
                 }
             }
         }
@@ -141,13 +153,13 @@ class RiwayatPembayaran extends BaseController
 
         return DataTable::of($builder)
             ->add('nama', function ($row) {
-                return  $row->nama . "<br>
-                <ul>
-                    <li><strong>No.Kamar: </strong>" .  $row->kamar . "</li>
-                    <li><strong>Tgl Mulai: </strong>" .  date("d-m-Y", strtotime($row->tgl_kost)) . "</li>
-                    <li><strong>Telp: </strong> <a href='https://wa.me/" . $row->telp . "' target='_blank'><i class='fab fa-whatsapp'></i> " . $row->telp . "</a></li>
-                    <li><strong>Jenis Sewa: </strong>" .  ucfirst($row->jenis_sewa) . "</li>
-                    <li><strong>Status Penyewa: </strong>" . ($row->active == 0 ? '<span class="badge badge-danger">Tidak aktif</span>' : '<span class="badge badge-success">Aktif</span>') . "</li>
+                return "<a href='" . base_url('anggota/edit/' . encryptID($row->id_anggota)) . "' target='_blank' title='Lihat detail anggota'>" . $row->nama . "</a> <br>
+                <ul style='font-size:12px; padding-left:25px;'>
+                    <li><strong>No.Kamar: </strong><br>" .  $row->kamar . "</li>
+                    <li><strong>Tanggal Mulai: </strong><br>" .  date("d-m-Y", strtotime($row->tgl_kost)) . "</li>
+                    <li><strong>Telp: </strong><br> <a href='https://wa.me/" . $row->telp . "' target='_blank'><i class='fab fa-whatsapp'></i> " . $row->telp . "</a></li>
+                    <li><strong>Jenis Sewa: </strong><br>" .  ucfirst($row->jenis_sewa) . "</li>
+                    <li><strong>Status Penyewa: </strong><br>" . ($row->active == 0 ? '<span class="badge badge-danger">Tidak aktif</span>' : '<span class="badge badge-success">Aktif</span>') . "</li>
                 </ul>";
             })
             ->add('januari', function ($row) use ($tahun) {
@@ -199,21 +211,36 @@ class RiwayatPembayaran extends BaseController
                 $bulan = date("Y-m", strtotime($tahun . '-12'));
                 return $this->cekPembayaranPerBulan($row, $bulan);
             })
-            ->add('total_bayar', function ($row) {
-                $total_bayar = $this->detailPembayaranModel->totalDibayar($row->id_anggota);
+            ->add('total', function ($row) use ($tahun) {
+                $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggota($row->id_anggota, $tahun);
+                return $total_bayar;
+            })
+            ->add('total_bayar', function ($row) use ($tahun) {
+                $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggota($row->id_anggota, $tahun);
                 return "Rp. " .  number_format($total_bayar, 0, ",", ".");
             })
             ->addNumbering('no')
-            // ->filter(function ($builder, $request) {
-            //     if ($request->status) {
-            //         if ($request->status == "belum bayar") {
-            //             $status = null;
-            //         } else {
-            //             $status = $request->status;
-            //         }
-            //         $builder->where("status", $status);
-            //     }
-            // })
+            ->filter(function ($builder, $request) {
+                if ($request->status) {
+                    if ($request->status != "all") {
+                        $builder->where("tbl_anggota.active", $request->status);
+                    }
+                } else {
+                    $builder->where("tbl_anggota.active !=", 1);
+                }
+            })
             ->toJson(true);
+    }
+
+    public function export()
+    {
+        $tahun = $this->request->getGet('tahun');
+        $status = $this->request->getGet('status');
+        if ($tahun == "" || $status == "") {
+            session()->setFlashdata('msg', 'error#Pencarian data pembayaran tidak ditemukan!');
+            return redirect()->to(base_url('riwayat_pembayaran'));
+        }
+
+        return view("riwayat_pembayaran/v_export_riwayat_pembayaran");
     }
 }

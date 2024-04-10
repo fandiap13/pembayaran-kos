@@ -15,23 +15,71 @@
 <?= $this->endSection('header'); ?>
 
 <?= $this->section("main"); ?>
+<!-- Ionicons -->
+<link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+
+
 <div class="row">
     <div class="col-lg-12">
-        <div class="card card-primary card-outline">
+        <div class="row">
+            <div class="col-lg-4 col-6">
+                <!-- small box -->
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h4 class="font-weight-bold">Rp.<?= number_format($total_pemasukan, 0, ",", "."); ?></h4>
+
+                        <p>Pemasukan Kos Tahun <?= $tahun; ?></p>
+                    </div>
+                    <div class="icon">
+                        <i class="far fa-credit-card"></i>
+                    </div>
+                    <a href="<?= base_url('riwayat_pembayaran'); ?>" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-6">
+                <!-- small box -->
+                <div class="small-box bg-primary">
+                    <div class="inner">
+                        <h4 class="font-weight-bold"><?= $total_anggota_kos; ?> Orang</h4>
+
+                        <p>Total Anggota Kos Aktif</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <a href="<?= base_url('anggota'); ?>" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-4 col-6">
+                <!-- small box -->
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h4 class="font-weight-bold"><?= $total_kamar_tersedia; ?> Kamar</h4>
+
+                        <p>Total Kamar Tersedia</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-house-user"></i>
+                    </div>
+                    <a href="<?= base_url('kamar'); ?>" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="card">
             <div class="card-header">
-                <h5 class="m-0">Featured</h5>
+                <h5 class="card-title"><i class="fa fa-user-tie mr-2"></i> Admin Login</h5>
             </div>
             <div class="card-body">
-                <h5 class="card-title">Card title</h5>
-
-                <p class="card-text">
-                    Some quick example text to build on the card title and make up the bulk of the card's
-                    content.
-                </p>
-                <a href="<?= base_url(); ?>template/#" class="card-link">Card link</a>
-                <a href="<?= base_url(); ?>template/#" class="card-link">Another link</a>
+                <ul>
+                    <li><strong>Username: </strong><?= $currUser['username']; ?></li>
+                    <li><strong>Nama: </strong><?= $currUser['nama']; ?></li>
+                    <li><strong>Waktu Login: </strong><?= date("d F Y H:i:s", strtotime(session("LoggedUserData")['waktu_login'])); ?></li>
+                </ul>
             </div>
-        </div><!-- /.card -->
+        </div>
     </div>
 </div>
 <?= $this->endSection("main"); ?>

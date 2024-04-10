@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Filters\FilterUser;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
@@ -24,6 +25,7 @@ class Filters extends BaseConfig
         'honeypot'      => Honeypot::class,
         'invalidchars'  => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
+        'auth' => FilterUser::class,
     ];
 
     /**
@@ -37,11 +39,29 @@ class Filters extends BaseConfig
             // 'honeypot',
             // 'csrf',
             // 'invalidchars',
+            'auth' => [
+                'except' => [
+                    'login', 'login/*',
+                ]
+            ],
         ],
         'after' => [
             'toolbar',
             // 'honeypot',
             // 'secureheaders',
+            'auth' => [
+                'except' => [
+                    '/', 'dashboard',
+                    'kategori', 'kategori/*',
+                    'kamar', 'kamar/*',
+                    'admin', 'admin/*',
+                    'anggota', 'anggota/*',
+                    'anggota_tidak_aktif', 'anggota_tidak_aktif/*',
+                    'pembayaran', 'pembayaran/*',
+                    'riwayat_pembayaran', 'riwayat_pembayaran/*',
+                    'logout',
+                ]
+            ],
         ],
     ];
 
