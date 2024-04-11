@@ -35,7 +35,6 @@ class Anggota extends BaseController
 
     public function anggota_datatable()
     {
-
         $builder = $this->anggotaModel->getAllAnggota();
         return DataTable::of($builder)
             ->add('tgl_kost', function ($row) {
@@ -64,7 +63,7 @@ class Anggota extends BaseController
                 // $pembayaranModel = new PembayaranModel();
                 // $cekForeign = $pembayaranModel->where("id_anggota", $row->id)->first();
                 // if (!$cekForeign) {
-                $aksi .= " <button type='button' onclick='hapus(\"" . encryptID($row->id) . "\")' class='btn btn-danger btn-sm' title='hapus'><i class='fas fa-user-slash'></i></button>";
+                $aksi .= " <button type='button' onclick='hapus(\"" . encryptID($row->id) . "\")' class='btn btn-danger btn-sm' title='nonaktifkan anggota'><i class='fas fa-user-slash'></i></button>";
                 // }
 
                 return "

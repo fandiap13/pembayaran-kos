@@ -28,7 +28,6 @@ class RiwayatPembayaran extends BaseController
         ]);
     }
 
-
     function hitungJatuhTempo($tgl_kost, $current_month)
     {
         $arr_mulai = explode("-", $tgl_kost);
@@ -37,7 +36,7 @@ class RiwayatPembayaran extends BaseController
         return $jatuh_tempo;
     }
 
-    function cekPembayaranPerBulan($row, $bulan)
+    public function cekPembayaranPerBulan($row, $bulan)
     {
         $tiga_bulan = ' +3 months';
         $perbulan = " +1 months";
@@ -119,17 +118,110 @@ class RiwayatPembayaran extends BaseController
                 if ($row->active == 1) {
                     return "
                             <p class='text-center' style='font-size:12px;'><a href='" . base_url("pembayaran/default/" . $cekTransaksiTahun['jatuh_tempo'] . "/" . encryptID($cekTransaksiTahun['id_anggota'])) . "' class='btn btn-sm btn-warning'><i class='fa fa-edit'></i><br> Belum <br>lunas</a><br>
-                            <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "
+                            <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "<br>
+                            <strong>Dibayar: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", '.') . "
                             </p>
                         ";
                 } else {
                     return "<p class='text-center' style='font-size:12px;'><span class='badge badge-warning'>Belum lunas</span><br>
-                    <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "
+                    <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "<br>
+                    <strong>Dibayar: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", '.') . "
                     <br>
                     <br>
                     <a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($tanggal_masuk, $jatuh_tempo) . "/" . encryptID($row->id_anggota)) . "'>Lihat Detail >></a>
                     </p>";
                 }
+            }
+        }
+    }
+
+    public function cekPembayaranPerBulanNoStyle($row, $bulan)
+    {
+        $tiga_bulan = ' +3 months';
+        $perbulan = " +1 months";
+        $setahun = ' +1 year';
+
+        $bulan_saat_ini = $bulan;
+        // cek apakah ada transaksi bulan ini ?
+        $cekTransaksiTahun = $this->pembayaranModel->select("tbl_pembayaran.*,tbl_kamar.nama as kamar")
+            ->join('tbl_kamar', 'tbl_pembayaran.id_kamar=tbl_kamar.id')
+            ->where('id_anggota', $row->id_anggota)
+            ->where('DATE_FORMAT(tbl_pembayaran.jatuh_tempo, "%Y-%m")', $bulan_saat_ini)
+            ->first();
+        // jika tidak ada maka buatlah tagihan belum bayar
+        if (!$cekTransaksiTahun) {
+            $cekAnggota = $this->anggotaModel->find($row->id_anggota);
+            // cek tanggal anggota mulai gabung kos2an (tanggal mulai ngekost)
+            $tanggal_mulai = date("Y-m", strtotime($cekAnggota['tgl_kost']));
+
+            // cek jenis sewa, untuk mencari bulan saat ini
+            // foreach dari bulan mulai kerja sampai bulan saat ini
+            $current_month = $tanggal_mulai;
+            while ($current_month <= $bulan_saat_ini) {
+                if ($current_month >= $bulan_saat_ini) {
+                    break;
+                }
+                // penambahan berdasarkan jenis sewa
+                if ($row->jenis_sewa == "3 bulan") {
+                    // Tambahkan 3 bulan ke bulan saat ini
+                    $current_month = date('Y-m', strtotime($current_month . $tiga_bulan));
+                } else if ($row->jenis_sewa == "1 tahun") {
+                    // Tambahkan 3 bulan ke bulan saat ini
+                    $current_month = date('Y-m', strtotime($current_month . $setahun));
+                } else {
+                    $current_month = date('Y-m', strtotime($current_month . $perbulan));
+                }
+            }
+
+            // jika tanggal mulai lebih besar dari bulan saat ini berarti belum mulai kost
+            if ($tanggal_mulai > $bulan_saat_ini) {
+                return "Tidak kos";
+            }
+
+            if ($bulan_saat_ini != $current_month) {
+                return "Tidak ada tagihan";
+            }
+
+            // jika tanggal mulai kurang dari bulan saat ini berarti sudah mulai kost
+            $jatuh_tempo = date("Y-m", strtotime($this->hitungJatuhTempo($cekAnggota['tgl_kost'], $bulan_saat_ini)));
+            // if ($bulan == $jatuh_tempo) {
+            if ($row->active == 1) {
+                return
+                    "
+                    <ul>
+                        <li><strong>Status: </strong>Belum bayar</li>
+                        <li><strong>Jatuh Tempo: </strong>" . date("d-m-Y", strtotime($jatuh_tempo)) . "</li>
+                    </ul>
+                    ";
+            } else {
+                // artinya tidak aktif
+                return
+                    "Pengguna Tidak aktif";
+            }
+            // }
+        } else { // jika ada maka cek apakah sudah bayar, atau belum lunas
+            $tanggal_masuk = date("Y-m-d", strtotime($cekTransaksiTahun['tanggal_mulai_sewa']));
+            // ambil tanggal masuk untuk menentukan jatuh tempo
+            $jatuh_tempo = date("Y-m", strtotime($this->hitungJatuhTempo($tanggal_masuk, $bulan_saat_ini)));
+            if ($cekTransaksiTahun['status'] == 'lunas') {
+                return "
+                        <ul>
+                            <li><strong>No.Kamar:</strong> " . $cekTransaksiTahun['kamar'] . "</li>
+                            <li><strong>Jatuh Tempo:</strong> " . date('d-m-Y', strtotime($cekTransaksiTahun['jatuh_tempo'])) . "</li>
+                            <li><strong>Status:</strong> Lunas<br>
+                            <li><strong>Total Bayar:</strong> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "</li>
+                            <li><strong>Jenis Sewa:</strong> " . ucfirst($cekTransaksiTahun['tipe_pembayaran']) . "</li>
+                        </ul>
+                        ";
+                // jika belum lunas
+            } else {
+                return "
+                            <ul>
+                                <li><strong>Status: </strong> Belum lunas</li>
+                                <li><strong>Jatuh Tempo: </strong>" . date("d-m-Y", strtotime($jatuh_tempo)) . "</li>
+                                <li><strong>Dibayar: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", '.') . "</li>
+                            </ul>
+                        ";
             }
         }
     }
@@ -146,7 +238,8 @@ class RiwayatPembayaran extends BaseController
             "
         )
             // ->join('tbl_pembayaran', 'tbl_pembayaran.id_anggota=tbl_anggota.id', 'left')
-            ->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar');
+            ->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar')
+            ->orderBy('tbl_anggota.nama', 'asc');
         // ->join('tbl_kamar', 'tbl_kamar.id=tbl_pembayaran.id_kamar');
         // ->where('jenis_sewa', $jenis_sewa)
         // ->where('DATE_FORMAT(tbl_pembayaran.tanggal_mulai_sewa, "%Y")', $tahun);        // tanggal mulai sewa tahun ini
@@ -241,6 +334,29 @@ class RiwayatPembayaran extends BaseController
             return redirect()->to(base_url('riwayat_pembayaran'));
         }
 
-        return view("riwayat_pembayaran/v_export_riwayat_pembayaran");
+        $db = db_connect();
+        $riwayat = $db->table('tbl_anggota')->select(
+            "
+            tbl_anggota.id as id_anggota,
+            tbl_anggota.active,
+            tbl_anggota.nama,tbl_anggota.id as id_a,tbl_anggota.telp,tbl_anggota.tgl_kost,tbl_anggota.jenis_sewa,
+            tbl_kamar.nama as kamar
+            "
+        )->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar')->orderBy('tbl_anggota.nama', 'asc');
+
+        $status_anggota = "";
+        if ($status != 'all') {
+            $riwayat->where("tbl_anggota.active", $status == 'all' ? "" : $status);
+            $status_anggota = $status == "0" ? "Tidak Aktif " : "Aktif ";
+        }
+
+        $result = $riwayat->get()->getResult();
+
+        return view("riwayat_pembayaran/v_export_riwayat_pembayaran", [
+            'title' => "Riwayat Pembayaran Anggota Kos " . $status_anggota . "Tahun " . $tahun,
+            'riwayat' => $result,
+            'tahun' => $tahun,
+            'status' => $status,
+        ]);
     }
 }
