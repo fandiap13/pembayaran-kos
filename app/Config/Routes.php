@@ -49,6 +49,7 @@ $routes->group('anggota', ['namespace' => 'App\Controllers'], function ($routes)
     $routes->post('update/(:any)', 'Anggota::update/$1');
     $routes->get('hapus/(:any)', 'Anggota::hapus/$1');
     $routes->get('export_excel', 'Anggota::export_excel');
+    $routes->get('hapus_permanen/(:any)', 'Anggota::hapus_permanen/$1');
 });
 // anggota tidak aktif
 $routes->group('anggota_tidak_aktif', ['namespace' => 'App\Controllers'], function ($routes) {
@@ -65,10 +66,17 @@ $routes->group('pembayaran', ['namespace' => 'App\Controllers'], function ($rout
     $routes->get('hapus_detail_pembayaran/(:any)', 'Pembayaran::hapus_detail_pembayaran/$1');
     $routes->get('hapus_transaksi_pembayaran/(:any)', 'Pembayaran::hapus_transaksi_pembayaran/$1');
     $routes->get('cetak_kuitansi/(:any)', 'Pembayaran::cetak_kuitansi/$1');
+    $routes->post('simpan_keterangan', 'Pembayaran::simpan_keterangan');
 });
 // riwayat pembayaran
 $routes->group('riwayat_pembayaran', ['namespace' => 'App\Controllers'], function ($routes) {
     $routes->get('/', 'RiwayatPembayaran::index');
     $routes->get('riwayat_pembayaran_datatable/(:any)', 'RiwayatPembayaran::pembayaran_datatable/$1');
     $routes->get('export', 'RiwayatPembayaran::export');
+});
+// utils
+$routes->group('utils', ['namespace' => 'App\Controllers'], function ($routes) {
+    $routes->get('/', 'Utils::index');
+    $routes->get('backup_database', 'Utils::backup_database');
+    $routes->get('backup_reset_database', 'Utils::backup_reset_database');
 });

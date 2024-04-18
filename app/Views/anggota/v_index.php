@@ -83,6 +83,7 @@
                             <th>Nama</th>
                             <th>Telp</th>
                             <th>Harga Sewa/bulan (Rp)</th>
+                            <th>Biaya Tambahan (Rp)</th>
                             <th>Jenis Sewa</th>
                             <th>Tanggal Masuk</th>
                             <th style="width: 20%;">Aksi</th>
@@ -102,7 +103,7 @@
     $(document).ready(function() {
         table = $('#data-table').DataTable({
             "responsive": true,
-            "lengthChange": false,
+            "lengthChange": true,
             "autoWidth": false,
             processing: true,
             serverSide: true,
@@ -134,6 +135,9 @@
                 },
                 {
                     data: 'harga',
+                },
+                {
+                    data: 'biaya_tambahan',
                 },
                 {
                     data: 'jenis_sewa',

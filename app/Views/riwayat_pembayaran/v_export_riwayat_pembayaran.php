@@ -45,7 +45,8 @@ $detailPembayaranModel = new DetailPembayaranModel();
                 <th rowspan="2">No</th>
                 <th rowspan="2">Penyewa</th>
                 <th colspan="12" style="text-align: center;">Bulan (<?= $tahun; ?>)</th>
-                <th rowspan="2">Total (Rp)</th>
+                <th rowspan="2">Total Pembayaran Tunai (Rp)</th>
+                <th rowspan="2">Total Pembayaran Transfer (Rp)</th>
             </tr>
             <tr>
                 <?php
@@ -72,6 +73,8 @@ $detailPembayaranModel = new DetailPembayaranModel();
             <?php
             $i = 1;
             $total = 0;
+            $total_tunai = 0;
+            $total_transfer = 0;
             foreach ($riwayat as $row) :
             ?>
                 <tr>
@@ -81,7 +84,8 @@ $detailPembayaranModel = new DetailPembayaranModel();
                             <li>
                                 <strong>Nama Penyewa: </strong><?= $row->nama; ?>
                             </li>
-                            <li><strong>No.Kamar: </strong><?= $row->kamar; ?></li>
+                            <li><strong>No.Kamar Saat Ini: </strong><?= $row->kamar; ?></li>
+                            <li><strong>Sewa Perbulan: </strong>Rp <?= number_format($row->harga, 0, ",", "."); ?></li>
                             <li><strong>Tanggal Mulai: </strong><?= date("d-m-Y", strtotime($row->tgl_kost)); ?></li>
                             <li><strong>Telp: </strong><?= $row->telp; ?></li>
                             <li><strong>Jenis Sewa: </strong><?= ucfirst($row->jenis_sewa); ?></li>
@@ -162,9 +166,18 @@ $detailPembayaranModel = new DetailPembayaranModel();
                     </td>
                     <td style="text-align: right;">
                         <?php
-                        $total_bayar = $detailPembayaranModel->totalDibayarByIDAnggota($row->id_anggota, $tahun);
-                        $total += $total_bayar;
-                        echo "Rp. " . number_format($total_bayar, 0, ",", ".");
+                        $tunai = $detailPembayaranModel->totalDibayarByIDAnggotaTunai($row->id_anggota, $tahun);
+                        $total_tunai += $tunai;
+                        $total += $tunai;
+                        echo "Rp. " . number_format($tunai, 0, ",", ".");
+                        ?>
+                    </td>
+                    <td style="text-align: right;">
+                        <?php
+                        $transfer = $detailPembayaranModel->totalDibayarByIDAnggotaTransfer($row->id_anggota, $tahun);
+                        $total_transfer += $transfer;
+                        $total += $transfer;
+                        echo "Rp. " . number_format($transfer, 0, ",", ".");
                         ?>
                     </td>
                 </tr>
@@ -172,8 +185,13 @@ $detailPembayaranModel = new DetailPembayaranModel();
         </tbody>
         <tfoot>
             <tr>
+                <th colspan="14" style="text-align:center">Total Pembayaran Tunai dan Transfer (Rp)</th>
+                <td style="text-align: right;">Rp. <?= number_format($total_tunai, 0, ",", "."); ?></td>
+                <td style="text-align: right;">Rp. <?= number_format($total_transfer, 0, ",", "."); ?></td>
+            </tr>
+            <tr>
                 <th colspan="14" style="text-align:center">Total Keseluruhan (Rp)</th>
-                <td style="text-align: right;">Rp. <?= number_format($total, 0, ",", "."); ?></td>
+                <td colspan="2" style="text-align: right;">Rp. <?= number_format($total, 0, ",", "."); ?></td>
             </tr>
         </tfoot>
     </table>

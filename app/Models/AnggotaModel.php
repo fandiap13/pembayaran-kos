@@ -41,9 +41,7 @@ class AnggotaModel extends Model
             ->where('active', 0)
             ->orderBy('tbl_kamar.nama', 'asc');
     }
-
-
-
+    
     public function getTotalAnggotaAKtif()
     {
         return $this->table($this->table)

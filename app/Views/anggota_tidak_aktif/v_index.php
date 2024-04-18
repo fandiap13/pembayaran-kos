@@ -31,7 +31,7 @@
                 <h5 class="card-title"><button class="btn btn-warning" onclick="window.location.reload()"><i class="fas fa-sync-alt"></i> Refresh</button></h5>
             </div>
             <div class="card-body">
-                <table id="data-table" class="table table-sm table-bordered table-hover">
+                <table id="data-table" class="table table-sm table-bordered table-hover text-sm">
                     <thead>
                         <tr>
                             <th style="width: 10px;">No</th>
@@ -40,6 +40,7 @@
                             <th>Nama</th>
                             <th>Telp</th>
                             <th>Harga Sewa/bulan (Rp)</th>
+                            <th>Biaya Tambahan (Rp)</th>
                             <th>Jenis Sewa</th>
                             <th>Tanggal Masuk</th>
                             <th style="width: 20%;">Aksi</th>
@@ -59,7 +60,7 @@
     $(document).ready(function() {
         table = $('#data-table').DataTable({
             "responsive": true,
-            "lengthChange": false,
+            "lengthChange": true,
             "autoWidth": false,
             processing: true,
             serverSide: true,
@@ -86,6 +87,9 @@
                 },
                 {
                     data: 'harga',
+                },
+                {
+                    data: 'biaya_tambahan',
                 },
                 {
                     data: 'jenis_sewa',
@@ -153,47 +157,60 @@
 
     function hapusPermanen(id) {
         Swal.fire({
-            title: "Hapus Anggota",
-            text: "Anda ingin menghapus Anggota ini?",
+            title: "Hapus Permanen Anggota",
+            text: "Hapus permanen anggota dapat menyebabkan riwayat anggota yang dihapus akan terhapus semua !",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Ya, hapus!",
+            confirmButtonText: "Ya, hapus permanen!",
             cancelButtonText: "batal",
         }).then((result) => {
             if (result.isConfirmed) {
-                $.ajax({
-                    url: "<?= base_url("anggota/hapus/"); ?>" + id,
-                    dataType: "json",
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire({
-                                icon: "success",
-                                title: "Success",
-                                text: response.message,
-                            }).then(function() {
-                                window.location.reload();
-                            });
-                        }
-                        if (response.error) {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Error",
-                                text: response.message,
-                            }).then(function() {
-                                window.location.reload();
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        // console.error("Error:", error);
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: "Terjadi Kesalahan pada sistem !",
-                        }).then(function() {
-                            window.location.reload();
+                Swal.fire({
+                    title: "Peringatan, Hapus Permanen Anggota !",
+                    text: "Apakah anda benar - benar yakin !",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Ya, yakin!",
+                    cancelButtonText: "batal",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: "<?= base_url("anggota/hapus_permanen/"); ?>" + id,
+                            dataType: "json",
+                            success: function(response) {
+                                if (response.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: "Success",
+                                        text: response.message,
+                                    }).then(function() {
+                                        window.location.reload();
+                                    });
+                                }
+                                if (response.error) {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Error",
+                                        text: response.message,
+                                    }).then(function() {
+                                        window.location.reload();
+                                    });
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                // console.error("Error:", error);
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Error",
+                                    text: "Terjadi Kesalahan pada sistem !",
+                                }).then(function() {
+                                    window.location.reload();
+                                });
+                            }
                         });
                     }
                 });

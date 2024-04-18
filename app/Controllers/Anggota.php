@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\AnggotaModel;
+use App\Models\DetailPembayaranModel;
 use App\Models\KamarModel;
 use App\Models\PembayaranModel;
 use Hermawan\DataTables\DataTable;
@@ -57,6 +58,9 @@ class Anggota extends BaseController
             })
             ->add('harga', function ($row) {
                 return "<p class='text-right'>Rp " . number_format($row->harga, 0, ",", ".") . "</p>";
+            })
+            ->add('biaya_tambahan', function ($row) {
+                return "<p class='text-right'>Rp " . number_format($row->biaya_tambahan, 0, ",", ".") . "</p>";
             })
             ->add('action', function ($row) {
                 $aksi = " <a href='" . base_url("anggota/edit/" . encryptID($row->id)) . "' class='btn btn-primary btn-sm' title='edit'><i class='fa fa-edit'></i></a>";
@@ -115,9 +119,14 @@ class Anggota extends BaseController
             ->add('harga', function ($row) {
                 return "<p class='text-right'>Rp " . number_format($row->harga, 0, ",", ".") . "</p>";
             })
+            ->add('biaya_tambahan', function ($row) {
+                return "<p class='text-right'>Rp " . number_format($row->biaya_tambahan, 0, ",", ".") . "</p>";
+            })
             ->add('action', function ($row) {
-                $aksi = " <button onclick='restoreData(\"" . encryptID($row->id) . "\")' class='btn btn-primary btn-sm mb-2' title='restore'>
+                $aksi = " <a href='" . base_url("anggota/edit/" . encryptID($row->id)) . "' class='btn btn-primary btn-sm mb-2' title='edit'><i class='fa fa-edit'></i> Edit anggota</a>";
+                $aksi .= "<br><button onclick='restoreData(\"" . encryptID($row->id) . "\")' class='btn btn-info btn-sm mb-2' title='restore'>
                 <i class='fas fa-sync-alt'></i> Restore data</button>";
+                $aksi .= "<br><button onclick='hapusPermanen(\"" . encryptID($row->id) . "\")' class='btn btn-danger btn-sm mb-2' title='edit'><i class='fa fa-trash-alt'></i> Hapus Permanen</button>";
                 // $pembayaranModel = new PembayaranModel();
                 // $cekForeign = $pembayaranModel->where("id_anggota", $row->id)->first();
                 // if (!$cekForeign) {
@@ -219,20 +228,22 @@ class Anggota extends BaseController
                 ],
                 'telp' => [
                     'label' => 'No telp/WA',
-                    'rules' => 'required|max_length[15]|numeric',
+                    'rules' => 'required|max_length[15]|numeric|regex_match[/^62\d{11}$/]',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 14 karakter !',
-                        'numeric' => '{field} harus berupa angka !'
+                        'numeric' => '{field} harus berupa angka !',
+                        'regex_match' => 'Format penulisan {field} tidak valid, contoh: 6285234777851',
                     ]
                 ],
                 'telp_kerabat' => [
                     'label' => 'No telp/WA (orang tua/kerabat)',
-                    'rules' => 'required|max_length[15]|numeric',
+                    'rules' => 'required|max_length[15]|numeric|regex_match[/^62\d{11}$/]',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 14 karakter !',
-                        'numeric' => '{field} harus berupa angka !'
+                        'numeric' => '{field} harus berupa angka !',
+                        'regex_match' => 'Format penulisan {field} tidak valid, contoh: 6285234777851',
                     ]
                 ],
                 'alamat' => [
@@ -437,6 +448,21 @@ class Anggota extends BaseController
     public function aktifkan_anggota($id)
     {
         $id = decryptID($id);
+        // cek dulu apakah kamar sudah digunakan 
+        $cekAnggota = $this->anggotaModel->find($id);
+        $id_kamar = $cekAnggota['id_kamar'];
+
+        // cek anggota aktif yang sedang memakai kamar
+        $cekKamarKosong = $this->anggotaModel->select("tbl_anggota.*,tbl_kamar.nama as kamar")
+            ->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar')
+            ->where('id_kamar', $id_kamar)->where('active', 1)->first();
+        if ($cekKamarKosong) {
+            echo json_encode([
+                'error' => true,
+                'message' => "Kamar " . $cekKamarKosong['kamar'] . " sudah digunakan! Silahkan ganti kamar lain yang tersedia jika ingin melanjutkan kos",
+            ]);
+            return;
+        }
 
         // cek transaksi kost terakhir
         $pembayaranModel = new PembayaranModel();
@@ -450,8 +476,9 @@ class Anggota extends BaseController
             }
         } else {
             // jika tidak ada cek tgl anggota mulai mendaftar
-            $cekAnggota = $this->anggotaModel->find($id);
-            $tanggal_kost = date("Y-m", strtotime($cekPembayaranTerakhir['tgl_kost']));
+            // echo json_encode($cekAnggota);
+            // return;
+            $tanggal_kost = date("Y-m", strtotime($cekAnggota['tgl_kost']));
             if (date("Y-m") == $tanggal_kost) {
                 $tgl_baru = $cekAnggota['tgl_kost'];
             } else {
@@ -477,5 +504,31 @@ class Anggota extends BaseController
         return view('anggota/v_anggota_export_excel', [
             'data' => $data,
         ]);
+    }
+
+    public function hapus_permanen($id)
+    {
+        try {
+            $id = decryptID($id);
+            $detailPembayaran = new DetailPembayaranModel();
+            $pembayaranModel = new PembayaranModel();
+
+            // hapus detail pembayaran
+            $detailPembayaran->where('id_anggota', $id)->delete();
+            // hapus pembayaran
+            $pembayaranModel->where('id_anggota', $id)->delete();
+            // hapus anggota
+            $this->anggotaModel->delete($id);
+
+            echo json_encode([
+                'success' => true,
+                'message' => "Anggota berhasil dihapus secara permanen"
+            ]);
+        } catch (\Throwable $th) {
+            echo json_encode([
+                'error' => true,
+                'message' => "Terdapat kesalahan pada sistem!"
+            ]);
+        }
     }
 }

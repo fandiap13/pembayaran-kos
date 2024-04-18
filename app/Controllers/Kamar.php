@@ -59,10 +59,11 @@ class Kamar extends BaseController
             $valid = $this->validate([
                 'nama' => [
                     'label' => 'No.Kamar',
-                    'rules' => 'required|max_length[150]',
+                    'rules' => 'required|max_length[150]|is_unique[tbl_kamar.nama]',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 150 karakter !',
+                        'is_unique' => '{field} sudah ada !',
                     ]
                 ],
                 'spesifikasi' => [
@@ -136,10 +137,11 @@ class Kamar extends BaseController
             $valid = $this->validate([
                 'nama' => [
                     'label' => 'No.Kamar',
-                    'rules' => 'required|max_length[150]',
+                    'rules' => 'required|max_length[150]|is_unique[tbl_kamar.nama,id,' . $id . ']',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 150 karakter !',
+                        'is_unique' => '{field} sudah ada !',
                     ]
                 ],
                 'spesifikasi' => [

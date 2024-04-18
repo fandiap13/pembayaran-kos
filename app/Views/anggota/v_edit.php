@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="<?= base_url(); ?>template/plugins/select2/css/select2.min.css">
 <link rel="stylesheet" href="<?= base_url(); ?>template/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 <script src="<?= base_url(); ?>template/plugins/select2/js/select2.full.min.js"></script>
+<script src="<?= base_url(); ?>libs/autoNumeric.min.js"></script>
+<script src="<?= base_url(); ?>libs/autoNumeric.js"></script>
 
 <div class="row">
     <div class="col-lg-12">
@@ -90,7 +92,7 @@
                     </div>
                     <div class="form-group">
                         <label for="biaya_tambahan">Biaya Tambahan</label>
-                        <input type="number" name="biaya_tambahan" id="biaya_tambahan" class="form-control" value="<?= $data['biaya_tambahan']; ?>">
+                        <input type="text" name="biaya_tambahan" id="biaya_tambahan" class="form-control" value="<?= $data['biaya_tambahan']; ?>">
                         <div class="invalid-feedback error_biaya_tambahan">
                         </div>
                     </div>
@@ -113,9 +115,18 @@
 </div>
 
 <script>
+    var biaya_tambahan = new AutoNumeric('#biaya_tambahan', {
+        currencySymbol: 'Rp ',
+        digitGroupSeparator: '.',
+        decimalCharacter: ',',
+        decimalPlaces: 0
+    });
+
     $(document).ready(function() {
         //Initialize Select2 Elements
-        $('.select2').select2()
+        $('.select2').select2();
+
+        $("#nama").focus();
 
         //Initialize Select2 Elements
         $('.select2bs4').select2({
@@ -149,10 +160,26 @@
     $("#formsave").submit(function(e) {
         e.preventDefault();
         const url = "<?= base_url("anggota/update/" . encryptID($data['id'])); ?>";
+
+        // Mengambil data dari form menggunakan serialize()
+        var formData = $(this).serialize();
+        // Membuat objek kosong untuk menyimpan data
+        var jsonData = {};
+        // Memecah data menjadi array pasangan nama-nilai
+        var dataArray = formData.split('&');
+        // Iterasi melalui array pasangan nama-nilai
+        for (var i = 0; i < dataArray.length; i++) {
+            // Memecah setiap pasangan nama-nilai menjadi nama dan nilai
+            var pair = dataArray[i].split('=');
+            // Menambahkan nama dan nilai ke dalam objek JSON
+            jsonData[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+        }
+        jsonData.biaya_tambahan = biaya_tambahan.getNumber();
+
         $.ajax({
             type: "post",
             url: url,
-            data: $(this).serialize(),
+            data: jsonData,
             dataType: "json",
             beforeSend: function() {
                 $(".btnSimpan").attr("disabled", true);
@@ -240,7 +267,15 @@
                         title: "Success",
                         text: response.message,
                     }).then(function() {
-                        window.location.href = "<?= base_url("anggota"); ?>";
+                        window.location.href = `
+                        <?php
+                        // Mendapatkan objek request
+                        $request = \Config\Services::request();
+                        // Mendapatkan URL sebelumnya
+                        $previousURL = $request->getServer('HTTP_REFERER');
+
+                        echo $previousURL;
+                        ?>`;
                     });
                 }
                 if (response.error) {
@@ -266,5 +301,4 @@
         });
     });
 </script>
-
 <?= $this->endSection("main"); ?>

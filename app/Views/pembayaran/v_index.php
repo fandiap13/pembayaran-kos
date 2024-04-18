@@ -108,7 +108,7 @@
     $(document).ready(function() {
         table = $('#data-table').DataTable({
             "responsive": true,
-            "lengthChange": false,
+            "lengthChange": true,
             "autoWidth": false,
             processing: true,
             serverSide: true,

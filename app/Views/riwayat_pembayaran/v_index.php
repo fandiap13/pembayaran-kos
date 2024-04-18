@@ -28,45 +28,60 @@
     <div class="col-lg-12">
         <div class="card card-primary card-outline">
             <div class="card-header">
-                <h5 class="card-title"><button class="btn btn-warning" onclick="reloadData();"><i class="fas fa-sync-alt"></i> Refresh</button></h5>
+                <div class="card-title">
+                    <h5 class="m-0"><button class="btn btn-warning" onclick="reloadData();"><i class="fas fa-sync-alt"></i> Refresh</button></h5>
+                </div>
             </div>
             <div class="card-body">
                 <div class="form-group">
                     <label for="">Pencarian tahun & Status Anggota</label>
                     <div class="row">
-                        <div class="col-lg-4">
-                            <div class="form-group" id="searchMode">
-                                <select name="tahun" id="tahun" class="form-control">
-                                    <?php
-                                    $tahun_sekaran = date("Y");
-                                    for ($tahun = 2023; $tahun <= $tahun_sekaran; $tahun++) : ?>
-                                        <option value="<?= $tahun; ?>" <?= $tahun == date("Y") ? 'selected' : ""; ?>><?= $tahun; ?></option>
-                                    <?php endfor; ?>
-                                </select>
+                        <div class="col-lg-12">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group" id="searchMode">
+                                        <select name="tahun" id="tahun" class="form-control">
+                                            <?php
+                                            $tahun_sekaran = date("Y");
+                                            for ($tahun = 2020; $tahun <= $tahun_sekaran; $tahun++) : ?>
+                                                <option value="<?= $tahun; ?>" <?= $tahun == date("Y") ? 'selected' : ""; ?>><?= $tahun; ?></option>
+                                            <?php endfor; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <select name="status" id="status" class="form-control">
+                                        <option value="all">Tampilkan Semua Anggota</option>
+                                        <option value="1">Anggota Aktif</option>
+                                        <option value="0">Anggota Tidak Aktif</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-lg-4">
-                            <select name="status" id="status" class="form-control">
-                                <option value="all">Tampilkan Semua Anggota</option>
-                                <option value="1">Anggota Aktif</option>
-                                <option value="0">Anggota Tidak Aktif</option>
-                            </select>
-                        </div>
-                        <div class="col-lg-2">
+                        <div class="col-lg-12">
                             <div class="form-group">
-                                <button type="submit" id="tampil-pencarian" class="btn btn-block btn-primary"><i class="fa fa-list"></i> Tampilkan</button>
+                                <!-- <label for="tipe_pembayaran">Tipe Pembayaran</label> -->
+                                <div class="row">
+                                    <!-- <div class="col-lg-6">
+                                        <select name="tipe_pembayaran" id="tipe_pembayaran" class="form-control">
+                                            <option value="all">Tampilkan semua tipe pembayaran</option>
+                                            <option value="tunai">Tunai</option>
+                                            <option value="transfer">Transfer</option>
+                                        </select>
+                                    </div> -->
+                                    <div class="col-lg-6">
+                                        <button type="submit" id="tampil-pencarian" class="btn btn-block btn-primary"><i class="fa fa-list"></i> Tampilkan</button>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <button type="button" class="btn btn-block btn-success" onclick="exportRiwayatPembayaran();"><i class="fa fa-file-excel"></i> Export Excel</button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-lg-2">
-                            <div class="form-group">
-                                <button type="button" class="btn btn-block btn-success" onclick="exportRiwayatPembayaran();"><i class="fa fa-file-excel"></i> Export Excel</button>
-                            </div>
-
                         </div>
                     </div>
                 </div>
 
-                <!-- <div class="table-responsive"> -->
+                <!-- <div class="table-responsive-scrollbar-top"> -->
                 <table id="data-table" class="table table-sm table-bordered table-hover text-sm">
                     <thead>
                         <tr>
@@ -76,7 +91,8 @@
                             <!-- <th rowspan="2">Tanggal Masuk</th> -->
                             <!-- <th rowspan="2">Total Sewa (Rp)</th> -->
                             <th colspan="12" class="text-center">Bulan</th>
-                            <th rowspan="2" class="text-center">Total (Rp)</th>
+                            <th rowspan="2" class="text-center">Total Tunai</th>
+                            <th rowspan="2" class="text-center">Total Transfer</th>
                         </tr>
                         <tr>
                             <?php
@@ -102,10 +118,15 @@
                     <tbody>
 
                     </tbody>
-                    <tfoot>
+                    <tfoot id="my-total-foot">
                         <tr>
-                            <th colspan="14" style="text-align:center">Total Keseluruhan (Rp):</th>
-                            <td></td>
+                            <th colspan="14" style="text-align:center">Total Tunai dan Total Transfer</th>
+                            <th id="total_tunai" style="text-align:center"></th>
+                            <th id="total_transfer" style="text-align:center"></th>
+                        </tr>
+                        <tr>
+                            <th colspan="14" style="text-align:center">Total Keseluruhan</th>
+                            <th colspan="2" id="total_keseluruhan" style="text-align:center"></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -124,6 +145,8 @@
             "lengthChange": true,
             "autoWidth": false,
             "pageLength": 50,
+            scrollX: '100%',
+            scrollCollapse: true,
             processing: true,
             serverSide: true,
             ajax: {
@@ -189,21 +212,47 @@
                     orderable: false,
                 },
                 {
-                    data: 'total_bayar',
+                    data: 'total_tunai',
+                },
+                {
+                    data: 'total_transfer',
                 },
             ],
             "footerCallback": function(row, data, start, end, display) {
+                // console.log(data);
                 var api = this.api();
-                let totalBayar = data.reduce((acc, curr) => acc + parseInt(curr.total), 0);
-                let formattedTotalBayar = "Rp " + totalBayar.toLocaleString("id-ID");
 
-                $(api.column(14).footer()).html(formattedTotalBayar);
+                // Mengambil elemen footer
+                var footer = $(api.table().footer());
+                if (data.length > 0) {
+                    let totalBayar = data.reduce((acc, curr) => acc + parseInt(curr.total), 0);
+                    let totalTransfer = data.reduce((acc, curr) => acc + parseInt(curr.transfer), 0);
+                    let totalTunai = data.reduce((acc, curr) => acc + parseInt(curr.tunai), 0);
+                    let formattedTotalBayar = "Rp " + totalBayar.toLocaleString("id-ID");
+                    let formattedTotalTransfer = "Rp " + totalTransfer.toLocaleString("id-ID");
+                    let formattedTotalTunai = "Rp " + totalTunai.toLocaleString("id-ID");
+                    // $("#total_tunai").html(formattedTotalTunai);
+                    // $("#total_transfer").html(formattedTotalTransfer);
+                    // $("#total_keseluruhan").html(formattedTotalBayar);
+                    $(api.column(14).footer()).html(formattedTotalTunai);
+                    $(api.column(15).footer()).html(formattedTotalTransfer);
+                    // mengosongi bari ke 2 dengan id total_keseluruhan
+                    footer.find('tr:eq(1)').find('#total_keseluruhan').html(formattedTotalBayar);
+                } else {
+                    $(api.column(14).footer()).html("0");
+                    $(api.column(15).footer()).html("0");
+                    // mengosongi bari ke 2 dengan id total_keseluruhan
+                    footer.find('tr:eq(1)').find('#total_keseluruhan').html("0");
+                }
             }
         });
     });
 
     function reloadData() {
         if ($("#tahun").val()) {
+            $("#total_tunai").html("0");
+            $("#total_transfer").html("0");
+            $("#total_keseluruhan").html("0");
             table.ajax.url('<?= base_url('riwayat_pembayaran/riwayat_pembayaran_datatable/'); ?>' + $("#tahun").val()).load();
         } else {
             Swal.fire({

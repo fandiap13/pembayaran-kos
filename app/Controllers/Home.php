@@ -19,7 +19,10 @@ class Home extends BaseController
         $data = [
             'title' => "Dashboard",
             'total_pemasukan' => $detailPembayaranModel->allTotalBayarKos(date("Y")),
+            'total_pemasukan_tunai' => $detailPembayaranModel->allTotalBayarKos(date("Y"), "tunai"),
+            'total_pemasukan_transfer' => $detailPembayaranModel->allTotalBayarKos(date("Y"), "transfer"),
             'total_anggota_kos' => $anggotaModel->getTotalAnggotaAKtif(),
+            'total_admin_kos' => $adminModel->get()->getNumRows(),
             'total_kamar_tersedia' => $kamarModel->getTotalKamarTersedia(),
             'currUser' => $currUser,
             'tahun' => date('Y'),

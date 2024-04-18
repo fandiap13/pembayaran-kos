@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="<?= base_url(); ?>template/plugins/select2/css/select2.min.css">
 <link rel="stylesheet" href="<?= base_url(); ?>template/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
 <script src="<?= base_url(); ?>template/plugins/select2/js/select2.full.min.js"></script>
+<script src="<?= base_url(); ?>libs/autoNumeric.min.js"></script>
+<script src="<?= base_url(); ?>libs/autoNumeric.js"></script>
 
 <div class="row">
     <div class="col-lg-12">
@@ -63,12 +65,16 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="id_kamar">Kamar Kost Yang Tersedia</label>
-                        <select name="id_kamar" id="id_kamar" class="form-control select2bs4">
-                            <option value="">--pilih kamar--</option>
-                            <?php foreach ($kamar as $k) : ?>
-                                <option value="<?= $k['id']; ?>"><?= $k['nama']; ?> - (Rp <?= number_format($k['harga'], 0, ",", "."); ?> / bulan)</option>
-                            <?php endforeach; ?>
+                        <label for="id_kamar">Kamar Kost Yang Tersedia</label> <span class="text-danger font-weight-bold"><?= !$kamar ? '(Kamar Kos Kosong!)' : ""; ?></span>
+                        <select name="id_kamar" id="id_kamar" class="form-control select2bs4" <?= !$kamar ? 'disabled' : ""; ?>>
+                            <?php if ($kamar) { ?>
+                                <option value="">--pilih kamar--</option>
+                                <?php foreach ($kamar as $k) : ?>
+                                    <option value="<?= $k['id']; ?>"><?= $k['nama']; ?> - (Rp <?= number_format($k['harga'], 0, ",", "."); ?> / bulan)</option>
+                                <?php endforeach; ?>
+                            <?php } else { ?>
+                                <option value="">KAMAR KOSONG</option>
+                            <?php } ?>
                         </select>
                         <div class="invalid-feedback error_id_kamar">
                         </div>
@@ -91,7 +97,7 @@
                     </div>
                     <div class="form-group">
                         <label for="biaya_tambahan">Biaya Tambahan</label>
-                        <input type="number" name="biaya_tambahan" id="biaya_tambahan" class="form-control" value="0">
+                        <input type="text" name="biaya_tambahan" id="biaya_tambahan" class="form-control" value="0">
                         <div class="invalid-feedback error_biaya_tambahan">
                         </div>
                     </div>
@@ -114,9 +120,18 @@
 </div>
 
 <script>
+    var biaya_tambahan = new AutoNumeric('#biaya_tambahan', {
+        currencySymbol: 'Rp ',
+        digitGroupSeparator: '.',
+        decimalCharacter: ',',
+        decimalPlaces: 0
+    });
+
     $(document).ready(function() {
         //Initialize Select2 Elements
-        $('.select2').select2()
+        $('.select2').select2();
+
+        $("#nama").focus();
 
         //Initialize Select2 Elements
         $('.select2bs4').select2({
@@ -150,10 +165,26 @@
     $("#formsave").submit(function(e) {
         e.preventDefault();
         const url = "<?= base_url("anggota/create") ?>";
+
+        // Mengambil data dari form menggunakan serialize()
+        var formData = $(this).serialize();
+        // Membuat objek kosong untuk menyimpan data
+        var jsonData = {};
+        // Memecah data menjadi array pasangan nama-nilai
+        var dataArray = formData.split('&');
+        // Iterasi melalui array pasangan nama-nilai
+        for (var i = 0; i < dataArray.length; i++) {
+            // Memecah setiap pasangan nama-nilai menjadi nama dan nilai
+            var pair = dataArray[i].split('=');
+            // Menambahkan nama dan nilai ke dalam objek JSON
+            jsonData[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+        }
+        jsonData.biaya_tambahan = biaya_tambahan.getNumber();
+
         $.ajax({
             type: "post",
             url: url,
-            data: $(this).serialize(),
+            data: jsonData,
             dataType: "json",
             beforeSend: function() {
                 $(".btnSimpan").attr("disabled", true);

@@ -4,10 +4,10 @@ $url = current_url(true);
 $currentUrl = strtolower($url->getSegment(1));
 
 $db = db_connect();
-$currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserData")['id_admin']))->get()->getRowArray();
+$currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserData")['id_admin']))
+    ->get()->getRowArray();
 
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +16,9 @@ $currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserDa
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>REKAP KOS HOME GREEN</title>
+
+    <!-- remove default favicon -->
+    <link rel="icon" href="data:,">
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -161,14 +164,17 @@ $currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserDa
                                 </p>
                             </a>
                         </li>
-                        <!-- <li class="nav-item">
-                            <a href="<?= base_url('pengaturan'); ?>" class="nav-link  <?= $currentUrl == "pengaturan" ? 'active' : ""; ?>">
+                        <li class="nav-header">
+                            <hr style="border-bottom: 1px solid #a9a9a9; opacity: .3;" />
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= base_url('utils'); ?>" class="nav-link  <?= $currentUrl == "utils" ? 'active' : ""; ?>">
                                 <i class="nav-icon fas fa-cog"></i>
                                 <p>
-                                    Pengaturan
+                                    Utils
                                 </p>
                             </a>
-                        </li> -->
+                        </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link logout">
                                 <i class="nav-icon fas fa-sign-out-alt"></i>
@@ -219,7 +225,7 @@ $currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserDa
         <footer class="main-footer">
             <!-- To the right -->
             <div class="float-right d-none d-sm-inline">
-                <a href="https://fandiap13.github.io/portofolio_new" target="_blank">
+                <a href="https://fandiap13.github.io/portofolio_new" class="font-weight-bold" target="_blank">
                     Developer
                 </a>
             </div>
@@ -236,7 +242,7 @@ $currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserDa
     <!-- AdminLTE App -->
     <script src="<?= base_url(); ?>template/dist/js/adminlte.min.js"></script>
     <!-- SweetAlert2 -->
-    <script src="<?= base_url() ?>template/plugins/sweetalert2/sweetalert2.min.js"></script>
+    <script src="<?= base_url(); ?>template/plugins/sweetalert2/sweetalert2.min.js"></script>
     <!-- Summernote -->
     <script src="<?= base_url(); ?>template/plugins/summernote/summernote-bs4.min.js"></script>
 

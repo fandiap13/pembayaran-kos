@@ -23,6 +23,8 @@ class RiwayatPembayaran extends BaseController
 
     public function index()
     {
+        // $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggotaTransfer(9, "2024");
+        // dd($total_bayar);
         return view('riwayat_pembayaran/v_index', [
             'title' => "Riwayat Pembayaran Kos",
         ]);
@@ -89,7 +91,7 @@ class RiwayatPembayaran extends BaseController
             if ($row->active == 1) {
                 return
                     "<p class='text-center' style='font-size:12px'><a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($cekAnggota['tgl_kost'], $jatuh_tempo) . "/" . encryptID($cekAnggota['id'])) . "'class='btn btn-sm btn-danger'><i class='fa fa-edit'></i> <br> Belum <br> bayar</a>
-                    <br>
+                    <br><br>
                     <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "
                     </p>";
             } else {
@@ -108,8 +110,10 @@ class RiwayatPembayaran extends BaseController
                             <p><strong>No.Kamar:</strong><br> " . $cekTransaksiTahun['kamar'] . "<br>
                             <strong>Jatuh Tempo:</strong><br> " . date('d-m-Y', strtotime($cekTransaksiTahun['jatuh_tempo'])) . "<br>
                             <strong>Status:</strong><br> <span class='badge badge-success'>Lunas</span><br>
-                            <strong>Total Bayar:</strong> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "<br>
-                            <strong>Jenis Sewa:</strong> " . ucfirst($cekTransaksiTahun['tipe_pembayaran']) . "<br><br>
+                            <strong>Jenis Sewa:</strong> " . ucfirst($cekTransaksiTahun['tipe_pembayaran']) . "<br>
+                            <strong>Tunai:</strong><br>Rp." . number_format($this->detailPembayaranModel->totalDibayarTunai($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
+                            <strong>Transfer:</strong><br>Rp." . number_format($this->detailPembayaranModel->totalDibayarTransfer($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
+                            <strong>Total Bayar:</strong> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "<br><br>
                             <a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($tanggal_masuk, $jatuh_tempo) . "/" . encryptID($row->id_anggota)) . "'>Lihat Detail >></a></p>
                         </div>
                         ";
@@ -117,16 +121,28 @@ class RiwayatPembayaran extends BaseController
             } else {
                 if ($row->active == 1) {
                     return "
-                            <p class='text-center' style='font-size:12px;'><a href='" . base_url("pembayaran/default/" . $cekTransaksiTahun['jatuh_tempo'] . "/" . encryptID($cekTransaksiTahun['id_anggota'])) . "' class='btn btn-sm btn-warning'><i class='fa fa-edit'></i><br> Belum <br>lunas</a><br>
+                            <p style='font-size:12px;'>
+                            <a href='" . base_url("pembayaran/default/" . $cekTransaksiTahun['jatuh_tempo'] . "/" . encryptID($cekTransaksiTahun['id_anggota'])) . "' class='btn btn-sm btn-block btn-warning'><i class='fa fa-edit'></i><br> Belum <br>lunas</a>
+                            <br>
+                            <strong>No.Kamar:</strong><br> " . $cekTransaksiTahun['kamar'] . "<br>
                             <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "<br>
-                            <strong>Dibayar: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", '.') . "
+                            <strong>Tunai: </strong> <br> Rp." . number_format($this->detailPembayaranModel->totalDibayarTunai($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
+                            <strong>Transfer: </strong> <br> Rp." . number_format($this->detailPembayaranModel->totalDibayarTransfer($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
+                            <strong>Total Bayar:</strong> <br> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "
+                            <br>
+                            <strong>Total Dibayar: </strong> <br> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
                             </p>
                         ";
                 } else {
-                    return "<p class='text-center' style='font-size:12px;'><span class='badge badge-warning'>Belum lunas</span><br>
+                    return "<p style='font-size:12px;'>
+                    <strong>No.Kamar:</strong><br> " . $cekTransaksiTahun['kamar'] . "<br>
                     <strong>Jatuh Tempo: </strong><br>" . date("d-m-Y", strtotime($jatuh_tempo)) . "<br>
-                    <strong>Dibayar: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", '.') . "
+                    <strong>Status: </strong><br><span class='badge badge-warning'>Belum lunas</span><br>
+                    <strong>Tunai: </strong> <br> Rp." . number_format($this->detailPembayaranModel->totalDibayarTunai($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
+                    <strong>Transfer: </strong> <br> Rp." . number_format($this->detailPembayaranModel->totalDibayarTransfer($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
+                    <strong>Total Bayar:</strong> <br> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "
                     <br>
+                    <strong>Total Dibayar: </strong> <br> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", ".") . "<br>
                     <br>
                     <a href='" . base_url("pembayaran/default/" . $this->hitungJatuhTempo($tanggal_masuk, $jatuh_tempo) . "/" . encryptID($row->id_anggota)) . "'>Lihat Detail >></a>
                     </p>";
@@ -208,20 +224,25 @@ class RiwayatPembayaran extends BaseController
                         <ul>
                             <li><strong>No.Kamar:</strong> " . $cekTransaksiTahun['kamar'] . "</li>
                             <li><strong>Jatuh Tempo:</strong> " . date('d-m-Y', strtotime($cekTransaksiTahun['jatuh_tempo'])) . "</li>
-                            <li><strong>Status:</strong> Lunas<br>
+                            <li><strong>Status:</strong> Lunas
+                            <li><strong>Jenis Sewa:</strong>" . ucfirst($cekTransaksiTahun['tipe_pembayaran']) . "</li>
+                            <li><strong>Tunai:</strong>Rp." . number_format($this->detailPembayaranModel->totalDibayarTunai($cekTransaksiTahun['id']), 0, ",", ".") . "</li>
+                            <li><strong>Transfer:</strong>Rp." . number_format($this->detailPembayaranModel->totalDibayarTransfer($cekTransaksiTahun['id']), 0, ",", ".") . "</li>
                             <li><strong>Total Bayar:</strong> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "</li>
-                            <li><strong>Jenis Sewa:</strong> " . ucfirst($cekTransaksiTahun['tipe_pembayaran']) . "</li>
                         </ul>
                         ";
                 // jika belum lunas
             } else {
-                return "
-                            <ul>
-                                <li><strong>Status: </strong> Belum lunas</li>
-                                <li><strong>Jatuh Tempo: </strong>" . date("d-m-Y", strtotime($jatuh_tempo)) . "</li>
-                                <li><strong>Dibayar: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", '.') . "</li>
-                            </ul>
-                        ";
+                return "<ul>
+                            <li><strong>No.Kamar:</strong> " . $cekTransaksiTahun['kamar'] . "</li>
+                            <li><strong>Jatuh Tempo: </strong>" . date("d-m-Y", strtotime($jatuh_tempo)) . "</li>
+                            <li><strong>Status: </strong><span class='badge badge-warning'>Belum lunas</span></li>
+                            <li><strong>Tunai: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayarTunai($cekTransaksiTahun['id']), 0, ",", ".") . "</li>
+                            <li><strong>Transfer: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayarTransfer($cekTransaksiTahun['id']), 0, ",", ".") . "</li>
+                            <li><strong>Total Bayar:</strong> Rp." . number_format($cekTransaksiTahun['total_bayar'], 0, ",", ".") . "
+                            </li>
+                            <li><strong>Total Dibayar: </strong> Rp." . number_format($this->detailPembayaranModel->totalDibayar($cekTransaksiTahun['id']), 0, ",", ".") . "</li>
+                        </ul>";
             }
         }
     }
@@ -234,7 +255,8 @@ class RiwayatPembayaran extends BaseController
             tbl_anggota.id as id_anggota,
             tbl_anggota.active,
             tbl_anggota.nama,tbl_anggota.id as id_a,tbl_anggota.telp,tbl_anggota.tgl_kost,tbl_anggota.jenis_sewa,
-            tbl_kamar.nama as kamar
+            tbl_kamar.nama as kamar,
+            tbl_kamar.harga
             "
         )
             // ->join('tbl_pembayaran', 'tbl_pembayaran.id_anggota=tbl_anggota.id', 'left')
@@ -247,10 +269,11 @@ class RiwayatPembayaran extends BaseController
         return DataTable::of($builder)
             ->add('nama', function ($row) {
                 return "<a href='" . base_url('anggota/edit/' . encryptID($row->id_anggota)) . "' target='_blank' title='Lihat detail anggota'>" . $row->nama . "</a> <br>
-                <ul style='font-size:12px; padding-left:25px;'>
-                    <li><strong>No.Kamar: </strong><br>" .  $row->kamar . "</li>
+                <ul style='font-size:12px; padding-left:15px;'>
+                    <li><strong>No.Kamar saat ini: </strong><br>" .  $row->kamar . "</li>
+                    <li><strong>Sewa Perbulan: </strong><br>Rp " .  number_format($row->harga, 0, ",", ".") . "</li>
                     <li><strong>Tanggal Mulai: </strong><br>" .  date("d-m-Y", strtotime($row->tgl_kost)) . "</li>
-                    <li><strong>Telp: </strong><br> <a href='https://wa.me/" . $row->telp . "' target='_blank'><i class='fab fa-whatsapp'></i> " . $row->telp . "</a></li>
+                    <li><strong>Telp: </strong><br> <a href='https://wa.me/" . $row->telp . "' target='_blank'>+" . $row->telp . "</a></li>
                     <li><strong>Jenis Sewa: </strong><br>" .  ucfirst($row->jenis_sewa) . "</li>
                     <li><strong>Status Penyewa: </strong><br>" . ($row->active == 0 ? '<span class="badge badge-danger">Tidak aktif</span>' : '<span class="badge badge-success">Aktif</span>') . "</li>
                 </ul>";
@@ -308,9 +331,21 @@ class RiwayatPembayaran extends BaseController
                 $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggota($row->id_anggota, $tahun);
                 return $total_bayar;
             })
-            ->add('total_bayar', function ($row) use ($tahun) {
-                $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggota($row->id_anggota, $tahun);
+            ->add('total_tunai', function ($row) use ($tahun) {
+                $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggotaTunai($row->id_anggota, $tahun);
                 return "Rp. " .  number_format($total_bayar, 0, ",", ".");
+            })
+            ->add('tunai', function ($row) use ($tahun) {
+                $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggotaTunai($row->id_anggota, $tahun);
+                return $total_bayar;
+            })
+            ->add('total_transfer', function ($row) use ($tahun) {
+                $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggotaTransfer($row->id_anggota, $tahun);
+                return "Rp. " .  number_format($total_bayar, 0, ",", ".");
+            })
+            ->add('transfer', function ($row) use ($tahun) {
+                $total_bayar = $this->detailPembayaranModel->totalDibayarByIDAnggotaTransfer($row->id_anggota, $tahun);
+                return $total_bayar;
             })
             ->addNumbering('no')
             ->filter(function ($builder, $request) {
@@ -340,7 +375,8 @@ class RiwayatPembayaran extends BaseController
             tbl_anggota.id as id_anggota,
             tbl_anggota.active,
             tbl_anggota.nama,tbl_anggota.id as id_a,tbl_anggota.telp,tbl_anggota.tgl_kost,tbl_anggota.jenis_sewa,
-            tbl_kamar.nama as kamar
+            tbl_kamar.nama as kamar,
+            tbl_kamar.harga
             "
         )->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar')->orderBy('tbl_anggota.nama', 'asc');
 

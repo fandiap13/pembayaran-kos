@@ -43,6 +43,8 @@ function rupiah($angka)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title; ?></title>
+    <!-- remove default favicon -->
+    <link rel="icon" href="data:,">
     <style type="text/css" media="print">
         @page {
             size: auto;
@@ -72,8 +74,9 @@ function rupiah($angka)
 
         #content {
             margin: 20mm 15mm;
-            width: 10cm;
-            height: 11cm;
+            width: 13cm;
+            /* tingginya dibuat auto */
+            /* height: 13cm; */
         }
 
         header,
@@ -118,9 +121,22 @@ function rupiah($angka)
         td {
             padding: 2px;
             text-align: start;
+            vertical-align: top;
         }
+
+        th.keterangan,
+        td.keterangan {
+            vertical-align: middle;
+        }
+
+        /* ul {
+            list-style-position: inside;
+            padding-top: 0;
+            padding-left: 0;
+        } */
     </style>
 </head>
+<!-- onload="print();" -->
 
 <body id="content" onload="print();">
     <table style="width: 100%;">
@@ -141,59 +157,125 @@ function rupiah($angka)
     <div style="padding: 10px; border: 1px solid black;">
         <table style="border: none;">
             <tr>
-                <th>No.Pembayaran</th>
+                <th style="width: 35%;">No.Pembayaran</th>
                 <th>:</th>
                 <th><?= $pembayaran['no_pembayaran']; ?></th>
             </tr>
             <tr>
-                <th>Telah Terima Dari</th>
+                <th style="width: 35%;">Telah Terima Dari</th>
                 <th>:</th>
                 <th><?= $pembayaran['nama']; ?></th>
             </tr>
             <tr>
-                <th>Uang Sebesar</th>
+                <th style="width: 35%;">Uang Sebesar</th>
                 <th>:</th>
                 <th><?= rupiah($pembayaran['total_bayar']); ?></th>
             </tr>
             <tr>
-                <th>Untuk Pembayaran</th>
+                <th style="width: 35%;">Untuk Pembayaran</th>
                 <th>:</th>
                 <th><?= $pembayaran['keterangan']; ?></th>
             </tr>
             <tr>
-                <th>Periode</th>
+                <th style="width: 35%;">Periode</th>
                 <th>:</th>
                 <th><?= date("d M Y", strtotime($pembayaran['jatuh_tempo'])); ?> S/D <?= date("d M Y", strtotime("+1 month", strtotime($pembayaran['jatuh_tempo']))); ?></th>
+            </tr>
+            <tr>
+                <th style="width: 35%;">Status </th>
+                <th>:</th>
+                <th><?= ucfirst($pembayaran['status'] == "lunas" ? $pembayaran['status'] : $pembayaran['status'] . " (Belum lunas)"); ?></th>
+            </tr>
+            <!-- <tr>
+                <th style="width: 35%;">Pembayaran Tunai </th>
+                <th>:</th>
+                <th>Rp <?= number_format($pembayaran_tunai, 0, ",", "."); ?></th>
+            </tr>
+            <tr>
+                <th style="width: 35%;">Pembayaran Transfer </th>
+                <th>:</th>
+                <th>Rp <?= number_format($pembayaran_transfer, 0, ",", "."); ?></th>
+            </tr> -->
+            <tr>
+                <th style="width: 35%;">Pembayaran Tunai </th>
+                <th>:</th>
+                <th>
+                    <!-- <ul> -->
+                    <?php
+                    $jml_tunai = 0;
+                    foreach ($data_pembayaran as $d) {
+                        if ($d['tipe_pembayaran'] == "tunai") {
+                            $jml_tunai++;
+                    ?>
+                            <li>
+                                <?= date("d/m/y", strtotime($d['tanggal'])); ?> - Rp.<?= number_format($d['bayar'], 0, ",", "."); ?>
+                            </li>
+                    <?php
+                        }
+                    } ?>
+                    <!-- </ul> -->
+
+                    <?php if ($jml_tunai == 0) { ?>
+                        -
+                    <?php } ?>
+                </th>
+            </tr>
+            <tr>
+                <th style="width: 35%;">Pembayaran Transfer </th>
+                <th>:</th>
+                <th>
+                    <?php
+                    $jml_transfer = 0;
+                    foreach ($data_pembayaran as $d) {
+                        if ($d['tipe_pembayaran'] == "transfer") {
+                            $jml_transfer++;
+                    ?>
+                            <li><?= date("d/m/y", strtotime($d['tanggal'])); ?> - Rp.<?= number_format($d['bayar'], 0, ",", "."); ?> (<?= $d['keterangan']; ?>)</li>
+                    <?php
+                        }
+                    } ?>
+
+                    <?php if ($jml_transfer == 0) { ?>
+                        -
+                    <?php } ?>
+                </th>
+            </tr>
+            <tr>
+                <th style="width: 35%;">Total Dibayar </th>
+                <th>:</th>
+                <th>Rp <?= number_format($dibayar, 0, ",", "."); ?></th>
+            </tr>
+            <?php
+            if ($pembayaran['status'] != 'lunas') { ?>
+                <tr>
+                    <th>Sisa Bayar </th>
+                    <th>:</th>
+                    <th>Rp <?= number_format($sisa_bayar, 0, ",", "."); ?></th>
+                </tr>
+            <?php } ?>
+
+            <tr>
+                <th style="width: 35%;" class="keterangan">
+                    Keterangan
+                </th>
+                <th class="keterangan">
+                    :
+                </th>
+                <th class="keterangan">
+                    <?= $pembayaran['keterangan_pembayaran']; ?>
+                </th>
             </tr>
         </table>
         <br>
         <br>
-        <div style="display: flex; justify-content: space-between;">
-            <table style="width: 100%;">
-                <tr>
-                    <th rowspan="5" style="width: 60%; text-align: start;">
-                        <div style="display: inline-block; border-top: 1px solid black; border-bottom: 1px solid black; padding: 10px;">
-                            <div style="display: flex; align-items: center; justify-content: start; gap: 10px; ">
-                                <div style="font-size: 12pt;">Rp.</div>
-                                <div style="font-size: 20pt;"><?= number_format($pembayaran['total_bayar'], 0, ',', "."); ?></div>
-                            </div>
-                        </div>
-                    </th>
-                </tr>
-                <tr>
-                    <th style="text-align: center;">Surakarta, <?= date("d F Y"); ?>
-                    </th>
-                </tr>
-                <tr>
-                    <th style="text-align: center;">Penerima,</th>
-                </tr>
-                <tr>
-                    <th><br><br><br><br></th>
-                </tr>
-                <tr>
-                    <th style="text-align: center;"><?= $pembayaran['admin']; ?></th>
-                </tr>
-            </table>
+        <div style="display: flex; flex-direction: column; justify-content: end; align-items: end; gap: 5px;">
+            <b>Total Bayar</b>
+            <div style="display: inline-block; border-top: 1px solid black; border-bottom: 1px solid black; padding: 10px; font-weight: bold;">
+                <div style="display: flex; align-items: center; justify-content: start; gap: 5px; ">
+                    <div style="font-size: 12pt;">Rp.</div>
+                    <div style="font-size: 20pt;"><?= number_format($pembayaran['total_bayar'], 0, ',', "."); ?></div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

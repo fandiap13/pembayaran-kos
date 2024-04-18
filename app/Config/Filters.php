@@ -59,6 +59,7 @@ class Filters extends BaseConfig
                     'anggota_tidak_aktif', 'anggota_tidak_aktif/*',
                     'pembayaran', 'pembayaran/*',
                     'riwayat_pembayaran', 'riwayat_pembayaran/*',
+                    'utils', 'utils/*',
                     'logout',
                 ]
             ],

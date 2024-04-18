@@ -23,6 +23,8 @@
 <script src="<?= base_url(); ?>template/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
 <script src="<?= base_url(); ?>template/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
 <script src="<?= base_url(); ?>template/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="<?= base_url(); ?>libs/autoNumeric.min.js"></script>
+<script src="<?= base_url(); ?>libs/autoNumeric.js"></script>
 
 <div class="row">
     <div class="col-lg-12">
@@ -131,7 +133,7 @@
                 </div>
                 <div class="form-group">
                     <label for="harga">Harga Sewa (Rp) / bulan</label>
-                    <input type="number" name="harga" id="harga" class="form-control">
+                    <input type="text" name="harga" id="harga" class="form-control">
                     <div class="invalid-feedback error_harga">
                     </div>
                 </div>
@@ -159,6 +161,13 @@
 </div>
 
 <script>
+    var harga = new AutoNumeric('#harga', {
+        currencySymbol: 'Rp ',
+        digitGroupSeparator: '.',
+        decimalCharacter: ',',
+        decimalPlaces: 0
+    });
+
     $(function() {
         $('#example2').DataTable({
             "paging": true,
@@ -193,7 +202,7 @@
                     $("#lantai").val(response.data.lantai);
                     $("#id_kategori").val(response.data.id_kategori);
                     $("#spesifikasi").val(response.data.spesifikasi);
-                    $("#harga").val(response.data.harga);
+                    harga.set(response.data.harga);
                 }
                 if (response.error) {
                     Swal.fire({
@@ -276,10 +285,26 @@
         } else {
             url = "<?= base_url("kamar/create") ?>";
         }
+
+        // Mengambil data dari form menggunakan serialize()
+        var formData = $(this).serialize();
+        // Membuat objek kosong untuk menyimpan data
+        var jsonData = {};
+        // Memecah data menjadi array pasangan nama-nilai
+        var dataArray = formData.split('&');
+        // Iterasi melalui array pasangan nama-nilai
+        for (var i = 0; i < dataArray.length; i++) {
+            // Memecah setiap pasangan nama-nilai menjadi nama dan nilai
+            var pair = dataArray[i].split('=');
+            // Menambahkan nama dan nilai ke dalam objek JSON
+            jsonData[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+        }
+        jsonData.harga = harga.getNumber();
+
         $.ajax({
             type: "post",
             url: url,
-            data: $(this).serialize(),
+            data: jsonData,
             dataType: "json",
             beforeSend: function() {
                 $(".btnSimpan").attr("disabled", true);

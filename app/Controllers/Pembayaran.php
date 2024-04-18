@@ -9,6 +9,7 @@ use App\Models\KamarModel;
 use App\Models\PembayaranModel;
 use DateTime;
 use Hermawan\DataTables\DataTable;
+use JsonException;
 
 class Pembayaran extends BaseController
 {
@@ -295,11 +296,11 @@ class Pembayaran extends BaseController
                     if ($row->status == 'lunas') {
                         $status = "<span class='badge badge-success'>Lunas</span";
                     } else if ($row->status == 'cicil') {
-                        $status = "<span class='badge badge-warning'>Cicil</span";
+                        $status = "<span class='badge badge-warning'>Cicil (Belum lunas)</span";
                     } else if ($row->status == 'proses') {
-                        $status = "<span class='badge badge-danger'>Proses belum selesai</span";
+                        $status = "<span class='badge badge-danger'>Proses (Belum lunas)</span";
                     } else {
-                        $status = "<span class='badge badge-danger'>Belum Bayar</span";
+                        $status = "<span class='badge badge-danger'>Belum Bayar (Belum lunas)</span";
                     }
                 } else {
                     $status = "<span class='badge badge-info'><i class='fa fa-info-circle mr-2'></i>Tidak ada tagihan di bulan " . date("F Y", strtotime($current_month)) . "</span>";
@@ -466,13 +467,14 @@ class Pembayaran extends BaseController
             $data['id_admin'] = $this->idAdmin;
             $data['tanggal'] = $data['tanggal'] . " " . date("H:i:s");
             $data['no_pembayaran'] = $this->pembayaranModel->getNoPembayaran($data['id_kamar']);
-            // echo json_encode($data);
+            $data['keterangan_pembayaran'] = "-";
+            // echo json_encode($this->pembayaranModel->getNoPembayaran($data['id_kamar']));
             // return;
 
             $this->pembayaranModel->insert($data);
             echo json_encode([
                 'success' => true,
-                'message' => "Pembayaran berhasil tersimpan!"
+                'message' => "Pembayaran berhasil tersimpan, silahkan lanjut ke proses pelunasan"
             ]);
         } catch (\Throwable $th) {
             echo json_encode([
@@ -487,6 +489,9 @@ class Pembayaran extends BaseController
         if ($this->request->isAJAX()) {
             try {
                 $id_pembayaran = $this->request->getPost('id_pembayaran');
+                $keterangan = $this->request->getPost('keterangan');
+                $tipe_pembayaran = $this->request->getPost('tipe_pembayaran');
+
                 $cek_pembayaran = $this->pembayaranModel->find($id_pembayaran);
                 if (!$cek_pembayaran) {
                     echo json_encode([
@@ -531,6 +536,8 @@ class Pembayaran extends BaseController
                     'id_admin' =>  $this->idAdmin,
                     'id_anggota' =>  $cek_pembayaran['id_anggota'],
                     'bayar' => $bayar,
+                    'keterangan' => $keterangan,
+                    'tipe_pembayaran' => $tipe_pembayaran,
                 ]);
 
                 echo json_encode([
@@ -591,18 +598,45 @@ class Pembayaran extends BaseController
     public function cetak_kuitansi($id)
     {
         try {
+            $data_pembayaran = $this->detailPembayaranModel
+                ->select("tbl_detail_pembayaran.*,tbl_admin.nama as admin")
+                ->join('tbl_admin', 'tbl_admin.id=tbl_detail_pembayaran.id_admin', 'left')
+                ->where('id_pembayaran', decryptID($id))->orderBy('tanggal', 'DESC')->findAll();
+            // dd($data_pembayaran);
             $cekPembayaran = $this->pembayaranModel
                 ->select('tbl_pembayaran.*,a.nama as admin,an.nama as nama')
                 ->join("tbl_admin as a", "a.id=tbl_pembayaran.id_admin")
                 ->join("tbl_anggota as an", "an.id=tbl_pembayaran.id_anggota")
                 ->find(decryptID($id));
+            $pembayaran_tunai = $this->detailPembayaranModel->totalDibayarTunai($cekPembayaran['id']);
+            $pembayaran_transfer = $this->detailPembayaranModel->totalDibayarTransfer($cekPembayaran['id']);
+            $dibayar = intval($pembayaran_transfer) + intval($pembayaran_tunai);
             return view('pembayaran/v_cetak_kuitansi_pembayaran', [
                 'title' => "Cetak Kuitansi " . $cekPembayaran['no_pembayaran'],
-                'pembayaran' => $cekPembayaran
+                'pembayaran' => $cekPembayaran,
+                'data_pembayaran' => $data_pembayaran,
+                'pembayaran_tunai' => $pembayaran_tunai,
+                'pembayaran_transfer' => $pembayaran_transfer,
+                'dibayar' => $dibayar,
+                'sisa_bayar' => intval($cekPembayaran['total_bayar'] - $dibayar),
             ]);
         } catch (\Throwable $th) {
             // throw $th;
             echo "Data pembayaran tidak ditemukan!";
         }
+    }
+
+    public function simpan_keterangan()
+    {
+        $id_pembayaran = $this->request->getPost('id_pembayaran');
+        // echo json_encode($this->request->getPost());
+        // return;
+        $data = trimAllPostInput($this->request->getPost());
+        $this->pembayaranModel->update($id_pembayaran, $data);
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Keterangan/Catatan pembayaran berhasil tersimpan"
+        ]);
     }
 }
