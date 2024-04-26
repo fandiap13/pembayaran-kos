@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Export Anggota Kos</title>
     <style>
+        * {
+            text-transform: uppercase !important;
+        }
+
         table {
             border-collapse: collapse;
             width: auto;

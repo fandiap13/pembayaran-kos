@@ -100,7 +100,8 @@ function rupiah($angka)
 
         * {
             font-size: 9pt;
-            font-family: Arial, Helvetica, sans-serif
+            font-family: Arial, Helvetica, sans-serif;
+            text-transform: uppercase !important;
         }
 
         table {
@@ -146,7 +147,7 @@ function rupiah($angka)
                     KOS PUTRA HOME GREEN
                 </div>
             </th>
-            <th style="text-align: right;">Jl. Matoa VII No.8, RT.001/RW.007, Karangasem, Kec. Laweyan, Kota Surakarta <br>Jawa Tengah <br> 0817251949</th>
+            <th style="text-align: right;">Jl. Matoa VII No.8, Karangasem, Kec. Laweyan, Kota Surakarta <br>Jawa Tengah <br> 0817251949</th>
         </tr>
     </table>
     <br>
@@ -179,7 +180,15 @@ function rupiah($angka)
             <tr>
                 <th style="width: 35%;">Periode</th>
                 <th>:</th>
-                <th><?= date("d M Y", strtotime($pembayaran['jatuh_tempo'])); ?> S/D <?= date("d M Y", strtotime("+1 month", strtotime($pembayaran['jatuh_tempo']))); ?></th>
+                <th>
+                    <?php if ($pembayaran['tipe_pembayaran'] == '1 tahun') { ?>
+                        <?= date("d M Y", strtotime($pembayaran['jatuh_tempo'])); ?> S/D <?= date("d M Y", strtotime("+1 year", strtotime($pembayaran['jatuh_tempo']))); ?>
+                    <?php } else if ($pembayaran['tipe_pembayaran'] == '3 bulan') { ?>
+                        <?= date("d M Y", strtotime($pembayaran['jatuh_tempo'])); ?> S/D <?= date("d M Y", strtotime("+3 month", strtotime($pembayaran['jatuh_tempo']))); ?>
+                    <?php } else { ?>
+                        <?= date("d M Y", strtotime($pembayaran['jatuh_tempo'])); ?> S/D <?= date("d M Y", strtotime("+1 month", strtotime($pembayaran['jatuh_tempo']))); ?>
+                    <?php } ?>
+                </th>
             </tr>
             <tr>
                 <th style="width: 35%;">Status </th>

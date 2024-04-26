@@ -41,6 +41,30 @@
                 </div>
             </div>
             <div class="card-body">
+                <form action="" method="get">
+                    <label for="status">Status Kamar</label>
+                    <div class="form-group row">
+                        <div class="col-lg-8">
+                            <select name="status" id="status" class="form-control">
+                                <option value="">-- Tampilkan Semua --</option>
+                                <option value="tersedia" <?= $status == 'tersedia' ? "selected" : ""; ?>>Tersedia</option>
+                                <option value="tidak tersedia" <?= $status == 'tidak tersedia' ? "selected" : ""; ?>>Tidak Tersedia</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-4">
+                            <button class="btn btn-primary btn-block"><i class="fa fa-list-alt"></i> Tampilkan</button>
+                        </div>
+                    </div>
+                </form>
+                <?php if ($status != "") { ?>
+                    <div class="alert alert-<?= $status == 'tidak tersedia' ? 'danger' : 'info'; ?>">
+                        Menampilkan Data Kamar Kos <strong><?= ucwords($status); ?></strong>
+                    </div>
+                <?php } else { ?>
+                    <div class="alert alert-info">
+                        Menampilkan Semua Data Kamar Kos
+                    </div>
+                <?php } ?>
                 <table id="example2" class="table table-sm table-bordered table-hover">
                     <thead>
                         <tr>
@@ -61,32 +85,81 @@
                         foreach ($data as $key => $value) :
                             $cekForeign = $db->table('tbl_anggota')->where('id_kamar', $value['id'])->where('active', 1)->get()->getRowArray();
                             if ($cekForeign) {
-                                $status = "<span class='badge badge-danger'>Tidak tersedia</span>";
+                                $txt_status = "<span class='badge badge-danger'>Tidak tersedia</span>";
                             } else {
-                                $status = "<span class='badge badge-success'>Tersedia</span>";
+                                $txt_status = "<span class='badge badge-success'>Tersedia</span>";
                             }
-                        ?>
-                            <tr>
-                                <td><?= $no++; ?></td>
-                                <td class="text-center"><?= $value['nama']; ?></td>
-                                <td class="text-center"><?= ucfirst($value['lantai']); ?></td>
-                                <td><?= $value['spesifikasi']; ?></td>
-                                <td><?= $value['kategori']; ?></td>
-                                <td class="text-right"><?= number_format($value['harga'], 0, ",", "."); ?></td>
-                                <td class="text-center">
-                                    <?= $status; ?>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        <button type="button" onclick="edit('<?= $value['id']; ?>')" class="btn btn-sm btn-primary"><i class="fa fa-edit"></i> Edit</button>
-                                        <?php
-                                        if (!$cekForeign) :
-                                        ?>
-                                            <button type="button" onclick="hapus('<?= $value['id']; ?>')" class="btn btn-sm btn-danger"><i class="fa fa-trash-alt"></i> Hapus</button>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
+                            if ($status == "tersedia") { ?>
+                                <?php if (!$cekForeign) { ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
+                                        <td class="text-center"><?= $value['nama']; ?></td>
+                                        <td class="text-center"><?= ucfirst($value['lantai']); ?></td>
+                                        <td><?= $value['spesifikasi']; ?></td>
+                                        <td><?= $value['kategori']; ?></td>
+                                        <td class="text-right"><?= number_format($value['harga'], 0, ",", "."); ?></td>
+                                        <td class="text-center">
+                                            <?= $txt_status; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" onclick="edit('<?= $value['id']; ?>')" class="btn btn-sm btn-primary"><i class="fa fa-edit"></i> Edit</button>
+                                                <?php
+                                                if (!$cekForeign) :
+                                                ?>
+                                                    <button type="button" onclick="hapus('<?= $value['id']; ?>')" class="btn btn-sm btn-danger"><i class="fa fa-trash-alt"></i> Hapus</button>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            <?php } else if ($status == "tidak tersedia") { ?>
+                                <?php if ($cekForeign) { ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
+                                        <td class="text-center"><?= $value['nama']; ?></td>
+                                        <td class="text-center"><?= ucfirst($value['lantai']); ?></td>
+                                        <td><?= $value['spesifikasi']; ?></td>
+                                        <td><?= $value['kategori']; ?></td>
+                                        <td class="text-right"><?= number_format($value['harga'], 0, ",", "."); ?></td>
+                                        <td class="text-center">
+                                            <?= $txt_status; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" onclick="edit('<?= $value['id']; ?>')" class="btn btn-sm btn-primary"><i class="fa fa-edit"></i> Edit</button>
+                                                <?php
+                                                if (!$cekForeign) :
+                                                ?>
+                                                    <button type="button" onclick="hapus('<?= $value['id']; ?>')" class="btn btn-sm btn-danger"><i class="fa fa-trash-alt"></i> Hapus</button>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            <?php } else { ?>
+                                <tr>
+                                    <td><?= $no++; ?></td>
+                                    <td class="text-center"><?= $value['nama']; ?></td>
+                                    <td class="text-center"><?= ucfirst($value['lantai']); ?></td>
+                                    <td><?= $value['spesifikasi']; ?></td>
+                                    <td><?= $value['kategori']; ?></td>
+                                    <td class="text-right"><?= number_format($value['harga'], 0, ",", "."); ?></td>
+                                    <td class="text-center">
+                                        <?= $txt_status; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <button type="button" onclick="edit('<?= $value['id']; ?>')" class="btn btn-sm btn-primary"><i class="fa fa-edit"></i> Edit</button>
+                                            <?php
+                                            if (!$cekForeign) :
+                                            ?>
+                                                <button type="button" onclick="hapus('<?= $value['id']; ?>')" class="btn btn-sm btn-danger"><i class="fa fa-trash-alt"></i> Hapus</button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php } ?>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
@@ -173,7 +246,7 @@
             "paging": true,
             "lengthChange": true,
             "searching": true,
-            "ordering": false,
+            // "ordering": false,
             "info": true,
             "autoWidth": false,
             "responsive": true,

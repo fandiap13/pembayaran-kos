@@ -228,7 +228,8 @@ class Anggota extends BaseController
                 ],
                 'telp' => [
                     'label' => 'No telp/WA',
-                    'rules' => 'required|max_length[15]|numeric|regex_match[/^62\d{11}$/]',
+                    // 'rules' => 'required|max_length[15]|numeric|regex_match[/^62\d{11}$/]',
+                    'rules' => 'required|numeric',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 14 karakter !',
@@ -238,7 +239,8 @@ class Anggota extends BaseController
                 ],
                 'telp_kerabat' => [
                     'label' => 'No telp/WA (orang tua/kerabat)',
-                    'rules' => 'required|max_length[15]|numeric|regex_match[/^62\d{11}$/]',
+                    // 'rules' => 'required|max_length[15]|numeric|regex_match[/^62\d{11}$/]',
+                    'rules' => 'permit_empty|numeric',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 14 karakter !',
@@ -346,7 +348,7 @@ class Anggota extends BaseController
                 ],
                 'telp' => [
                     'label' => 'No telp/WA',
-                    'rules' => 'required|max_length[15]|numeric',
+                    'rules' => 'required|numeric',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 14 karakter !',
@@ -355,7 +357,7 @@ class Anggota extends BaseController
                 ],
                 'telp_kerabat' => [
                     'label' => 'No telp/WA (orang tua/kerabat)',
-                    'rules' => 'required|max_length[15]|numeric',
+                    'rules' => 'permit_empty|numeric',
                     'errors' => [
                         'required' => '{field} harus diisi !',
                         'max_length' => '{field} maksimal 14 karakter !',

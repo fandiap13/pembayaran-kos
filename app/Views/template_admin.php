@@ -32,9 +32,21 @@ $currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserDa
     <link rel="stylesheet" href="<?= base_url() ?>template/plugins/summernote/summernote-bs4.min.css">
     <!-- jQuery -->
     <script src="<?= base_url(); ?>template/plugins/jquery/jquery.min.js"></script>
+
+    <style>
+        * {
+            text-transform: uppercase !important;
+        }
+
+        input,
+        textarea,
+        select {
+            text-transform: uppercase;
+        }
+    </style>
 </head>
 
-<body class="hold-transition sidebar-mini">
+<body class="hold-transition sidebar-mini text-sm">
     <div class="wrapper">
 
         <!-- Navbar -->
@@ -61,7 +73,7 @@ $currUser = $db->table('tbl_admin')->where('id', decryptID(session("LoggedUserDa
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
             <!-- Brand Logo -->
             <a href="" class="brand-link">
-                <span class="brand-text font-weight-light">REKAP KOST HOME GREEN</span>
+                <span class="brand-text font-weight-light text-lg">REKAP KOST HOME GREEN</span>
             </a>
 
             <!-- Sidebar -->

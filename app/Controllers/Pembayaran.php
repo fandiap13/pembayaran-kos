@@ -161,7 +161,8 @@ class Pembayaran extends BaseController
             tbl_kamar.nama as kamar,tbl_pembayaran.*
             "
         )
-            ->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar');
+            ->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar')
+            ->orderBy('tbl_kamar.nama', 'ASC');
         if ($jenis_sewa == "1 tahun") {
             $builder
                 ->join('tbl_pembayaran', 'tbl_pembayaran.id_anggota=tbl_anggota.id AND DATE_FORMAT(tbl_pembayaran.jatuh_tempo, "%Y") = ' . $db->escape(date("Y", strtotime($bulan))), 'left')

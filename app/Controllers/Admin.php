@@ -94,6 +94,9 @@ class Admin extends BaseController
             }
 
             $data = trimAllPostInput($this->request->getPost());
+            $data['username'] = strtoupper($data['username']);
+            $data['nama'] = strtoupper($data['nama']);
+            $data['password'] = strtoupper($data['password']);
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
             $save = $this->adminModel->insert($data);
             if ($save) {
@@ -167,12 +170,15 @@ class Admin extends BaseController
             }
 
             $data = trimAllPostInput($this->request->getPost());
+            $data['password'] = strtoupper($data['password']);
             if ($data['password'] != "" && $data['password'] != null) {
                 $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
             } else {
                 unset($data['password']);
             }
 
+            $data['username'] = strtoupper($data['username']);
+            $data['nama'] = strtoupper($data['nama']);
             $save = $this->adminModel->update($cekAdmin['id'], $data);
             if ($save) {
                 echo json_encode([

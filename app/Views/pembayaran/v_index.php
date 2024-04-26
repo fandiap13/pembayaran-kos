@@ -125,7 +125,8 @@
                     orderable: false,
                 },
                 {
-                    data: 'nama'
+                    data: 'nama',
+                    orderable: false,
                 },
                 {
                     data: 'telp',
@@ -133,9 +134,11 @@
                 },
                 {
                     data: 'kamar',
+                    orderable: false,
                 },
                 {
                     data: 'tgl_kost',
+                    orderable: false,
                 },
                 {
                     data: 'tgl_pembayaran',

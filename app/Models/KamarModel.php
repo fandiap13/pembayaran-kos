@@ -67,4 +67,13 @@ class KamarModel extends Model
             ->orWhereIn('tbl_anggota.active', [0, null])
             ->get()->getNumRows();
     }
+
+    public function getTotalKamarDipakai()
+    {
+        return $this->db->table($this->table)
+            ->select($this->table . '.*,tbl_anggota.nama as anggota, tbl_anggota.id as id_anggota')
+            ->join('tbl_anggota', 'tbl_anggota.id_kamar=' . $this->table . '.id', 'left')
+            ->where('tbl_anggota.active', 1)
+            ->get()->getNumRows();
+    }
 }

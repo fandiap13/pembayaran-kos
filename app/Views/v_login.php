@@ -15,6 +15,25 @@
     <link rel="stylesheet" href="<?= base_url(); ?>template/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
     <!-- Theme style -->
     <link rel="stylesheet" href="<?= base_url(); ?>template/dist/css/adminlte.min.css">
+    <style>
+        * {
+            text-transform: uppercase !important;
+        }
+
+        input,
+        textarea,
+        select {
+            text-transform: uppercase;
+        }
+
+        .btn {
+            text-transform: uppercase !important;
+        }
+
+        input.password {
+            text-transform: none;
+        }
+    </style>
 </head>
 
 <body class="hold-transition login-page">
@@ -32,11 +51,13 @@
                     <div class="alert alert-<?= $alert[0]; ?> alert-dismissible">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
                         <?php if ($alert[0] == "danger") { ?>
-                            <h5><i class="icon fas fa-ban"></i> Terdapat kesalahan !</h5>
+                            <h5><i class="icon fas fa-ban"></i> Terdapat kesalahan!</h5>
                         <?php } else { ?>
                             <h5><i class="icon fas fa-info-circle"></i>Pesan</h5>
                         <?php } ?>
-                        <strong><?= $alert[1]; ?></strong>
+                        <!-- <strong>
+                        </strong> -->
+                        <?= $alert[1]; ?>
                     </div>
                 <?php } ?>
 
@@ -44,7 +65,7 @@
                 <?php if (validation_errors()) { ?>
                     <div class="alert alert-danger alert-dismissible">
                         <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
-                        <h5><i class="icon fas fa-ban"></i> Terdapat kesalahan !</h5>
+                        <h5><i class="icon fas fa-ban"></i> Terdapat kesalahan!</h5>
                         <strong><?= validation_list_errors(); ?></strong>
                     </div>
                 <?php } ?>
@@ -60,7 +81,7 @@
                         </div>
                     </div>
                     <div class="input-group mb-3">
-                        <input type="password" class="form-control" placeholder="Password" name="password">
+                        <input type="text" class="form-control password" placeholder="Password" name="password">
                         <div class="input-group-append">
                             <div class="input-group-text">
                                 <span class="fas fa-lock"></span>

@@ -111,7 +111,7 @@
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label> <span class="text-sm text-danger font-italic">* Password akan diubah jika diisi!</span>
-                    <input type="text" name="password" id="password" class="form-control">
+                    <input type="text" name="password" id="password" class="form-control password">
                     <div class="invalid-feedback error_password">
                     </div>
                 </div>

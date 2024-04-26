@@ -16,6 +16,10 @@ $detailPembayaranModel = new DetailPembayaranModel();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title; ?></title>
     <style>
+        * {
+            text-transform: uppercase !important;
+        }
+
         table {
             border-collapse: collapse;
             /* Atur lebar tabel sesuai kebutuhan */

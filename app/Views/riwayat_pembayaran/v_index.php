@@ -81,6 +81,7 @@
                     </div>
                 </div>
 
+
                 <!-- <div class="table-responsive-scrollbar-top"> -->
                 <table id="data-table" class="table table-sm table-bordered table-hover text-sm">
                     <thead>
@@ -144,7 +145,7 @@
             "responsive": false,
             "lengthChange": true,
             "autoWidth": false,
-            "pageLength": 50,
+            "pageLength": 5,
             scrollX: '100%',
             scrollCollapse: true,
             processing: true,
@@ -161,7 +162,8 @@
                     orderable: false,
                 },
                 {
-                    data: 'nama'
+                    data: 'nama',
+                    orderable: false,
                 },
                 {
                     data: 'januari',
@@ -213,11 +215,24 @@
                 },
                 {
                     data: 'total_tunai',
+                    orderable: false,
                 },
                 {
                     data: 'total_transfer',
+                    orderable: false,
                 },
             ],
+            // "pagingType": "full_numbers",
+            // "dom": '<"top"i>rt<"bottom"lp><"clear">',
+            // "language": {
+            //     "paginate": {
+            //         "previous": "Sebelumnya",
+            //         "next": "Selanjutnya"
+            //     }
+            // },
+            "sPaginationType": "full_numbers",
+            "dom": '<"top"flp>rt<"bottom"i><"clear">',
+            "ordering": false,
             "footerCallback": function(row, data, start, end, display) {
                 // console.log(data);
                 var api = this.api();
@@ -246,6 +261,10 @@
                 }
             }
         });
+
+        // var topPagination = $('.dataTables_paginate').clone(); // Menyalin elemen pagination
+        // $('#my_wrapper').html(topPagination); // Memasukkan salinan elemen pagination ke dalam #example_wrapper
+
     });
 
     function reloadData() {

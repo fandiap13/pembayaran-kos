@@ -34,6 +34,9 @@ class Login extends BaseController
             }
 
             $data = trimAllPostInput($this->request->getPost());
+            $data['username'] = strtoupper($data['username']);
+            $data['password'] = strtoupper($data['password']);
+
             $adminModel = new AdminModel();
             $cek_user = $adminModel->where('username', $data['username'])->first();
             if (!$cek_user) {

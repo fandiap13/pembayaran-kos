@@ -19,13 +19,17 @@ class Kamar extends BaseController
 
     public function index()
     {
+        $status = $this->request->getGet('status') ?? "";
+        $data = $this->kamarModel->select('tbl_kamar.*,tbl_kategori_kamar.kategori')
+            ->join('tbl_kategori_kamar', 'tbl_kamar.id_kategori=tbl_kategori_kamar.id')
+            ->orderBy('tbl_kamar.nama', 'ASC')
+            ->findAll();
+        // dd($data);
         return view('kamar/v_index', [
             'title' => "Kamar Kos",
             'kategori' => $this->kategoriModel->findAll(),
-            'data' => $this->kamarModel->select('tbl_kamar.*,tbl_kategori_kamar.kategori')
-                ->join('tbl_kategori_kamar', 'tbl_kamar.id_kategori=tbl_kategori_kamar.id')
-                ->orderBy('tbl_kamar.nama', 'ASC')
-                ->findAll()
+            'data' => $data,
+            'status' => $status,
         ]);
     }
 

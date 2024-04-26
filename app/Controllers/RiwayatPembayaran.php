@@ -261,7 +261,8 @@ class RiwayatPembayaran extends BaseController
         )
             // ->join('tbl_pembayaran', 'tbl_pembayaran.id_anggota=tbl_anggota.id', 'left')
             ->join('tbl_kamar', 'tbl_kamar.id=tbl_anggota.id_kamar')
-            ->orderBy('tbl_anggota.nama', 'asc');
+            // ->orderBy('tbl_kamar.nama', 'asc') // jika diurutkan berdasarkan nama kamar
+            ->orderBy('tbl_kamar.nama', 'asc'); // jika diurutkan berdasarkan nama kamar
         // ->join('tbl_kamar', 'tbl_kamar.id=tbl_pembayaran.id_kamar');
         // ->where('jenis_sewa', $jenis_sewa)
         // ->where('DATE_FORMAT(tbl_pembayaran.tanggal_mulai_sewa, "%Y")', $tahun);        // tanggal mulai sewa tahun ini
